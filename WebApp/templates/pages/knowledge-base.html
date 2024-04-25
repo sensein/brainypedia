@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block inpagecss %}
+.left-sidebar-menu{
+margin:5px;
+}
+{% endblock inpagecss %}
+{% block bodycontent %}
+{% if knowledge_base %}
+<div class="row align-items-start">
+    <div class="col-md-5">
+        <div class="left-sidebar-menu">
+            {% for item in knowledge_base %}
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="">{{item.left_side_menu_title}}</a></li>
+                </ol>
+            </nav>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-7">
+        <h3>One of three columns</h3>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-secondary" role="alert">
+    Please configure the application first.
+</div>
+{% endif %}
+{% endblock bodycontent %}
