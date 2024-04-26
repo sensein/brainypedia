@@ -3,7 +3,8 @@ from .models import KnowledgeBaseViewerModel, QueryEndpoint
 # Register your models here.
 
 class KnowledgeBaseAdmin(admin.ModelAdmin):
-    list_display = ('left_side_menu_title', 'created_at', 'updated_at', 'status_active', 'left_side_menu_title_slug')
+    list_display = ('left_side_menu_title', 'created_at', 'updated_at', 'status_active', 'left_side_menu_title_slug', 'display_column_first',
+                    'display_column_second', 'display_column_third', 'display_column_fourth')
     list_filter = ('left_side_menu_title',  'status_active')
 
 class QueryEndpointAdmin(admin.ModelAdmin):

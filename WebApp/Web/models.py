@@ -16,9 +16,13 @@ ENDPOINT_SERVICE_TYPE = (
 
 class KnowledgeBaseViewerModel(models.Model):
     """This model is used for displaying knowledge base data as well as for setting the menu"""
-    left_side_menu_title = models.CharField(max_length=350, blank=False, unique=True)
+    left_side_menu_title = models.CharField(max_length=350, blank=False, unique=True, help_text="Left side menu title")
     left_side_menu_title_slug = AutoSlugField(populate_from='left_side_menu_title', unique=False)
     sparql_query = models.TextField(blank=False)
+    display_column_first = models.CharField(max_length=150, blank=False, unique=True, help_text="The column that will be displayed when the page loads")
+    display_column_second = models.CharField(max_length=150, blank=False, unique=True, help_text="The column that will be displayed when the page loads")
+    display_column_third = models.CharField(max_length=150, blank=False, unique=True, help_text="The column that will be displayed when the page loads")
+    display_column_fourth = models.CharField(max_length=150, blank=True, unique=True, help_text="The column that will be displayed when the page loads")
     status_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
