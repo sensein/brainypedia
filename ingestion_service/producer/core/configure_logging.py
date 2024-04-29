@@ -83,7 +83,7 @@ def configure_logging() -> None:
                     "handlers": ["default", "rotating_file", "logtail"],
                     "level": "INFO",
                 },
-                "storeapi": {
+                "producer": {
                     "handlers": handlers,
                     "level": (
                         "DEBUG" if isinstance(config, DevelopmentConfig) else "INFO"
