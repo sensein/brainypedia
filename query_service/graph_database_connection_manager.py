@@ -25,8 +25,6 @@ def _connect_gdb(request_type="get"):
     Connects to a graph database using the provided connection details.
 
     Parameters:
-    - connection_details (dict): A dictionary containing connection details.
-      Expected keys: 'username', 'password', 'hostname', 'repository'.
     - request_type (str): The type of request ('get' or 'post').
 
     Returns:
