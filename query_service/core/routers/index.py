@@ -13,5 +13,13 @@
 # @Author  : Tek Raj Chhetri
 # @Email   : tekraj@mit.edu
 # @Web     : https://tekrajchhetri.com/
-# @File    : query.py
+# @File    : index.py
 # @Software: PyCharm
+from fastapi import APIRouter
+
+router = APIRouter()
+
+
+@router.get("/")
+async def root():
+    return {"message": "Welcome to Brainypedia Query Service!"}
