@@ -16,28 +16,44 @@
 # @File    : text.py
 # @Software: PyCharm
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from fastapi import File, Form, UploadFile
 from fastapi.responses import JSONResponse
 from core.configure_rabbit_mq import publish_message
 import logging
 from core.file_validator import validate_file_extension, validate_mime_type
+import json
 
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/ingest/text/file")
-async def ingest_text(id: str = Form(...), filename: str = Form(...), file: UploadFile = File(...)):
+@router.post("/ingest/file", summary="Ingest a either CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD or TEXT files")
+async def ingest_file(id: str = Form(...), filename: str = Form(...), file: UploadFile = File(...)):
     logger.info("Started ingestion operation")
 
     if not validate_mime_type(file.content_type):
-        raise HTTPException(status_code=400, detail="Only CSV, JSON, EXCEL, PDF and TEXT files are supported.")
+        raise HTTPException(status_code=400, detail="Only CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD and TEXT files are supported.")
 
     if not validate_file_extension(file.filename):
         raise HTTPException(status_code=400, detail="Unsupported file extension. Supported extensions: csv, json, xls, txt and pdf")
 
     content = await file.read()
     publish_message(content)
+    logger.info("Successful ingestion operation")
     return JSONResponse(content={"message": "File uploaded successfully", "id": id, "filename": filename})
+
+@router.post("/ingest/raw/json")
+async def ingest_json(jsoninput: str = Body(..., media_type="application/json")):
+    try:
+        parsed_json = json.loads(jsoninput)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
+
+    return {"received_data": parsed_json}
+
+@router.post("/ingest/raw/text/")
+async def ingest_text(text: str = Body(..., media_type="text/plain")):
+    text_data = text
+    return {"received_text": text_data}
