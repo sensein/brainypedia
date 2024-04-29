@@ -18,6 +18,7 @@
 
 from SPARQLWrapper import SPARQLWrapper, BASIC, GET, JSON, POST
 import os
+from shared import ValueNotSetException
 
 
 def _connect_gdb(request_type="get"):
@@ -36,6 +37,10 @@ def _connect_gdb(request_type="get"):
     graphdatabase_type = os.getenv("GRAPHDATABASE_TYPE", "GRAPHDB")
     graphdatabase_repository = os.getenv("GRAPHDATABASE_REPOSITORY")
     print(f"Connecting to {graphdatabase_type}")
+
+    if not (graphdatabase_username and graphdatabase_password and graphdatabase_hostname and graphdatabase_type):
+        raise ValueNotSetException()
+
 
     if graphdatabase_type == "GRAPHDB":
         if request_type == "get":
