@@ -16,11 +16,28 @@
 # @File    : file_validator.py
 # @Software: PyCharm
 
-ALLOWED_MIME_TYPES = {"application/json", "application/vnd.ms-excel", "text/plain", "text/csv", "application/pdf"}
-ALLOWED_EXTENSIONS = {".json", ".xls",".txt", ".csv", ".pdf"}
+ALLOWED_MIME_TYPES = {"application/json",  # JSON file
+                      "application/vnd.ms-excel",  # Excel file
+                      "text/plain",  # Plain text file
+                      "text/csv",  # CSV file
+                      "application/pdf",  # PDF file
+                      "application/rdf+xml",  # RDF/XML
+                      "application/ld+json",  # JSON-LD
+                      "text/turtle"  # Turtle
+                      }
+ALLOWED_EXTENSIONS = {".json",
+                      ".xls",
+                      ".txt",
+                      ".csv",
+                      ".pdf",
+                      ".ttl",
+                      ".rdf",
+                      "jsonld"}
+
 
 def validate_file_extension(filename: str) -> bool:
     return any(filename.endswith(ext) for ext in ALLOWED_EXTENSIONS)
+
 
 def validate_mime_type(mime_type: str) -> bool:
     return mime_type in ALLOWED_MIME_TYPES
