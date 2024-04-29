@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app-brainypedia-dev:
+  app-dev:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,5 +10,6 @@ services:
     environment:
       - ENVIRONMENT=debug
     restart: on-failure
-    volumes:
-      - ./:/app
+
+
+

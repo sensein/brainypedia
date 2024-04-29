@@ -1,4 +1,4 @@
-# FastApi Skeleton
+# Ingest Service
 This application provides the basic structure for FastAPI development, implementing features such as logging, authentication, and containerization. 
 
 While this skeleton is concentrated on the BrainyPedia project, it can be used in any other project.

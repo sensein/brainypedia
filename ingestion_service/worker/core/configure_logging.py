@@ -72,7 +72,7 @@ def configure_logging() -> None:
                     "level": "DEBUG",
                     "formatter": "file",
                     "filters": ["correlation_id"],
-                    "filename": "storeapi.log",
+                    "filename": "worker.log",
                     "maxBytes": 1024 * 1024 * 40,  # 40 MB each file
                     "backupCount": 2,  # total number of files you want to keep after that the file will be deleted
                     "encoding": "utf8",
