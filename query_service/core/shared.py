@@ -16,6 +16,8 @@
 # @File    : shared.py
 # @Software: PyCharm
 
+from rdflib import Graph
+
 class ValueNotSetException(Exception):
     def __init__(self):
         Exception.__init__(self)
@@ -23,3 +25,7 @@ class ValueNotSetException(Exception):
 
     def __str__(self):
         return self.message
+
+def convert_to_turtle(jsonlddata):
+
+        return Graph().parse(data=jsonlddata, format='json-ld').serialize(format="turtle")

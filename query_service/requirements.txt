@@ -12,3 +12,4 @@ logtail-python ==0.2.10
 # to handle type annotation 'int | None' future
 eval-type-backport == 0.1.3
 SPARQLWrapper==2.0.0
+rdflib==7.0.0

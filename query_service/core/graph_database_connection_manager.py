@@ -18,10 +18,12 @@
 
 from SPARQLWrapper import SPARQLWrapper, BASIC, GET, JSON, POST
 import os
-from shared import ValueNotSetException
+from .shared import ValueNotSetException
+import logging
 
+logger = logging.getLogger(__name__)
 
-def _connect_gdb(request_type="get"):
+def _connectionmanager(request_type="get"):
     """
     Connects to a graph database using the provided connection details.
 
@@ -40,7 +42,6 @@ def _connect_gdb(request_type="get"):
 
     if not (graphdatabase_username and graphdatabase_password and graphdatabase_hostname and graphdatabase_type):
         raise ValueNotSetException()
-
 
     if graphdatabase_type == "GRAPHDB":
         if request_type == "get":
@@ -80,3 +81,36 @@ def test_connection(connectionmanager):
     except Exception as e:
         print(f"Error:{e}")
         return False
+
+
+def insert_data_gdb(turtle_data):
+    sparql = _connectionmanager("post")
+    if sparql:
+        try:
+            sparql.setMethod(POST)
+            sparql_query = """
+                    INSERT DATA {
+                    %s
+                    }
+                    """ % turtle_data
+            sparql.setQuery(sparql_query)
+            response = sparql.query()
+            return {"status": 1, "message": response}
+        except Exception as e:
+            return {"status": 0, "message": {str(e)}}
+    else:
+        return "Not connected! or Connection error"
+
+
+def fetch_data_gdb(sparql_query):
+    sparql = _connectionmanager("get")
+
+    # Set SPARQL query parameters
+    sparql.setMethod(GET)
+    sparql.setQuery(sparql_query)
+    sparql.setReturnFormat(JSON)
+    try:
+        result = sparql.query().convert()
+        return {"status": "success", "message": result}
+    except Exception as e:
+        return {"status": "fail","message": str(e)}
