@@ -43,7 +43,7 @@ def connect_to_rabbitmq():
     return connection, channel
 
 
-def publish_message(message, exchange_name='fanout_exchange'):
+def publish_message(message, exchange_name='ingest_message'):
     """Publish a message to a fanout exchange in RabbitMQ, meaning, there will be multiple consumers (or subscribers)
     for the same mesage."""
     connection, channel = connect_to_rabbitmq()
