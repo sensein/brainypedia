@@ -16,7 +16,7 @@
 # @File    : configure_rabbit_mq.py
 # @Software: PyCharm
 
-from functools import lru_cache
+
 from dotenv import load_dotenv
 import os
 from fastapi import HTTPException
