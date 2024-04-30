@@ -13,27 +13,20 @@
 # @Author  : Tek Raj Chhetri
 # @Email   : tekraj@mit.edu
 # @Web     : https://tekrajchhetri.com/
-# @File    : shared.py
+# @File    : pydantic_schema.py
 # @Software: PyCharm
+from pydantic import BaseModel
+from datetime import datetime
+class BaseSchema(BaseModel):
+    id: str
+    user: str
+    date_created: datetime = datetime.now()
+    date_modified: datetime = datetime.now()
+class InputJSONSLdchema(BaseSchema):
+    kg_data: dict
 
+class InputJSONSchema(BaseSchema):
+    json_data: dict
 
-import json
-
-def has_context(json_obj):
-    return '@context' in json_obj
-
-
-def is_valid_jsonld(jsonld_str):
-    try:
-        jsonld_obj = json.loads(jsonld_str)
-        return has_context(jsonld_obj)
-    except ValueError:
-        return False
-
-
-if __name__=="__main__":
-    jsonld_string = '{"@contexst": "https://schema.org", "@type": "Person", "name": "John Doe"}'
-    if is_valid_jsonld(jsonld_string):
-        print("Valid JSON-LD")
-    else:
-        print("Invalid JSON-LD")
+class InputTextSchema(BaseSchema):
+    text_data: str
