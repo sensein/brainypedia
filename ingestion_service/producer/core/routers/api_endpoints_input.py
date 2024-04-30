@@ -23,19 +23,8 @@ from core.configure_rabbit_mq import publish_message
 import logging
 from core.file_validator import validate_file_extension, validate_mime_type
 import json
-from pydantic import BaseModel
-
-class BaseSchema(BaseModel):
-    id: str
-    user: str
-class InputJSONSLdchema(BaseSchema):
-    kg_data: dict
-
-class InputJSONSchema(BaseSchema):
-    json_data: dict
-
-class InputTextSchema(BaseSchema):
-    text_data: str
+from core.pydantic_schema import InputJSONSLdchema, InputJSONSchema, InputTextSchema
+from core.shared import is_valid_jsonld
 
 
 router = APIRouter()
@@ -70,12 +59,17 @@ async def ingest_json(jsoninput: InputJSONSchema):
 @router.post("/ingest/raw/jsonld")
 async def ingest_json(jsonldinput: InputJSONSLdchema):
     try:
-        parsed_json = json.loads(jsonldinput)
-        publish_message(parsed_json)
+        parsed_json = jsonldinput
+        if is_valid_jsonld(str(parsed_json)):
+            publish_message(parsed_json)
+            return JSONResponse(content={"message": "File uploaded successfully"})
+        else:
+            return JSONResponse(content={"message": "Invalid format data! Please provide correct JSON-LD data."})
+
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
 
-    return JSONResponse(content={"message": "File uploaded successfully"})
+
 
 @router.post("/ingest/raw/text/")
 async def ingest_text(text: InputTextSchema):
