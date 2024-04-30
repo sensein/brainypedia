@@ -8,7 +8,7 @@ from fastapi.exceptions import HTTPException
 
 from core.configure_logging import configure_logging
 from core.routers.index import router as index_router
-from core.routers.text import  router as ingest_api_router
+from core.routers.api_endpoints_input import  router as ingest_api_router
 
 app = FastAPI()
 logger = logging.getLogger(__name__)
