@@ -1,10 +1,17 @@
-# Ingest Service
-This application provides the basic structure for FastAPI development, implementing features such as logging, authentication, and containerization. 
+# Ingest Service (Producer)
+This ingest service, i.e., the producer service implements the functionalities to interact with the messaging broker, i.e., RabbitMQ in our case to publish the incoming request/data.
 
-While this skeleton is concentrated on the BrainyPedia project, it can be used in any other project.
+## Requirements
+- Set the following environment variables for RabbitMQ. The data will be published on a exchange `ingest_message`.
+  - RABBITMQ_USERNAME
+  - RABBITMQ_PASSWORD
+  - RABBITMQ_URL, i.e., the hostname, by default it is localhost
+  - RABBITMQ_PORT, by default 5672 is used
+  - RABBITMQ_VHOST, default vhost is "/"
+
 ## Features Implemented
-- [x] Logging 
-- ![](images/logging.png)
+- [x] Logging  
+- 
 ## Features to be Implemented
 - [ ] Containerization of the application
 - [ ] JWT-based Authentication
