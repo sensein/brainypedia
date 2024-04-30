@@ -13,7 +13,7 @@
 # @Author  : Tek Raj Chhetri
 # @Email   : tekraj@mit.edu
 # @Web     : https://tekrajchhetri.com/
-# @File    : text.py
+# @File    : api_endpoints_input.py
 # @Software: PyCharm
 
 from fastapi import APIRouter, HTTPException, Body
@@ -23,6 +23,19 @@ from core.configure_rabbit_mq import publish_message
 import logging
 from core.file_validator import validate_file_extension, validate_mime_type
 import json
+from pydantic import BaseModel
+
+class BaseSchema(BaseModel):
+    id: str
+    user: str
+class InputJSONSLdchema(BaseSchema):
+    kg_data: dict
+
+class InputJSONSchema(BaseSchema):
+    json_data: dict
+
+class InputTextSchema(BaseSchema):
+    text_data: str
 
 
 router = APIRouter()
@@ -30,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/ingest/file", summary="Ingest a either CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD or TEXT files")
-async def ingest_file(id: str = Form(...), filename: str = Form(...), file: UploadFile = File(...)):
+async def ingest_file(id: str = Form(...), user: str = Form(...), filename: str = Form(...), file: UploadFile = File(...)):
     logger.info("Started ingestion operation")
 
     if not validate_mime_type(file.content_type):
@@ -42,18 +55,30 @@ async def ingest_file(id: str = Form(...), filename: str = Form(...), file: Uplo
     content = await file.read()
     publish_message(content)
     logger.info("Successful ingestion operation")
-    return JSONResponse(content={"message": "File uploaded successfully", "id": id, "filename": filename})
+    return JSONResponse(content={"message": "File uploaded successfully", "id": id, "user": user, "filename": filename})
 
 @router.post("/ingest/raw/json")
-async def ingest_json(jsoninput: str = Body(..., media_type="application/json")):
+async def ingest_json(jsoninput: InputJSONSchema):
     try:
         parsed_json = json.loads(jsoninput)
+        publish_message(parsed_json)
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
 
-    return {"received_data": parsed_json}
+    return JSONResponse(content={"message": "File uploaded successfully"})
+
+@router.post("/ingest/raw/jsonld")
+async def ingest_json(jsonldinput: InputJSONSLdchema):
+    try:
+        parsed_json = json.loads(jsonldinput)
+        publish_message(parsed_json)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
+
+    return JSONResponse(content={"message": "File uploaded successfully"})
 
 @router.post("/ingest/raw/text/")
-async def ingest_text(text: str = Body(..., media_type="text/plain")):
+async def ingest_text(text: InputTextSchema):
     text_data = text
-    return {"received_text": text_data}
+    publish_message(text_data)
+    return JSONResponse(content={"message": "File uploaded successfully"})
