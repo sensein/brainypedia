@@ -13,7 +13,7 @@
 # @Author  : Tek Raj Chhetri
 # @Email   : tekraj@mit.edu
 # @Web     : https://tekrajchhetri.com/
-# @File    : index.py
+# @File    : rabbit_mq_listener.py
 # @Software: PyCharm
 from fastapi import APIRouter
 router = APIRouter()
@@ -21,4 +21,4 @@ router = APIRouter()
 
 @router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Welcome to the producer ingest service"}
