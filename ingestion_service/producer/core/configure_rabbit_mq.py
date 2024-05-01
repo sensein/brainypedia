@@ -9,6 +9,7 @@
 # tort, or otherwise, arising from, out of, or in connection with the
 # software or the use or other dealings in the software.
 # -----------------------------------------------------------------------------
+import json
 
 # @Author  : Tek Raj Chhetri
 # @Email   : tekraj@mit.edu
@@ -48,7 +49,6 @@ def publish_message(message, exchange_name='ingest_message'):
     for the same mesage."""
     connection, channel = connect_to_rabbitmq()
     channel.exchange_declare(exchange=exchange_name, exchange_type='fanout')
-
     try:
         channel.basic_publish(exchange=exchange_name,
                               routing_key='',  # Routing key is ignored by fanout exchanges
@@ -57,7 +57,7 @@ def publish_message(message, exchange_name='ingest_message'):
                                   delivery_mode=2,  # Make message persistent
                               ))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"RabbitMQ: {str(e)}")
     print(f"Published message to exchange '{exchange_name}': {message}")
 
     channel.close()
