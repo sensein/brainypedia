@@ -126,7 +126,21 @@ async def ingest_json(jsonldinput: Annotated[
 
 
 @router.post("/ingest/raw/text/")
-async def ingest_text(text: InputTextSchema):
-    text_data = text
+async def ingest_text(text:
+Annotated[
+    InputTextSchema,
+    Body(
+        examples=[
+            {
+                "id": "1BCD",
+                "user": "U123r",
+                "date_created": "2024-04-30T12:42:32.203447",
+                "date_modified": "2024-04-30T12:42:32.203451",
+                "text_data": "This is sample text data for KGs construction"
+            }
+        ],
+    ),
+],):
+    text_data = text.json()
     publish_message(text_data)
     return JSONResponse(content={"message": "File uploaded successfully"})
