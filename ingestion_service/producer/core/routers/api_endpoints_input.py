@@ -25,50 +25,104 @@ from core.file_validator import validate_file_extension, validate_mime_type
 import json
 from core.pydantic_schema import InputJSONSLdchema, InputJSONSchema, InputTextSchema
 from core.shared import is_valid_jsonld
-
+from typing import Annotated
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 @router.post("/ingest/file", summary="Ingest a either CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD or TEXT files")
-async def ingest_file(id: str = Form(...), user: str = Form(...), filename: str = Form(...), file: UploadFile = File(...)):
+async def ingest_file(id: str = Form(...), user: str = Form(...), filename: str = Form(...),
+                      file: UploadFile = File(...)):
     logger.info("Started ingestion operation")
 
     if not validate_mime_type(file.content_type):
-        raise HTTPException(status_code=400, detail="Only CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD and TEXT files are supported.")
+        raise HTTPException(status_code=400,
+                            detail="Only CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD and TEXT files are supported.")
 
     if not validate_file_extension(file.filename):
-        raise HTTPException(status_code=400, detail="Unsupported file extension. Supported extensions: csv, json, xls, txt and pdf")
+        raise HTTPException(status_code=400,
+                            detail="Unsupported file extension. Supported extensions: csv, json, xls, txt and pdf")
 
     content = await file.read()
     publish_message(content)
     logger.info("Successful ingestion operation")
     return JSONResponse(content={"message": "File uploaded successfully", "id": id, "user": user, "filename": filename})
 
+
 @router.post("/ingest/raw/json")
-async def ingest_json(jsoninput: InputJSONSchema):
+async def ingest_json(jsoninput: Annotated[
+    InputJSONSchema,
+    Body(
+        examples=[
+            {
+                "id": "1BCD",
+                "user": "U123r",
+                "date_created": "2024-04-30T12:42:32.203447",
+                "date_modified": "2024-04-30T12:42:32.203451",
+                "json_data": {
+
+                    "neuroscience_disorders": [
+                        {
+                            "disorder": "Alzheimer's disease",
+                            "description": "A progressive neurodegenerative disorder that leads to memory loss and cognitive decline.",
+                            "symptoms": ["Memory loss", "Confusion", "Trouble with language and reasoning"],
+                            "treatments": ["Medications (e.g., cholinesterase inhibitors)", "Cognitive therapy"]
+                        },
+                        {
+                            "disorder": "Parkinson's disease",
+                            "description": "A neurodegenerative disorder characterized by tremors, rigidity, and difficulty with movement.",
+                            "symptoms": ["Tremors", "Bradykinesia", "Postural instability"],
+                            "treatments": ["Levodopa", "Deep brain stimulation (DBS)"]
+                        },
+                        {
+                            "disorder": "Schizophrenia",
+                            "description": "A chronic and severe mental disorder that affects how a person thinks, feels, and behaves.",
+                            "symptoms": ["Hallucinations", "Delusions", "Disorganized thinking"],
+                            "treatments": ["Antipsychotic medications", "Psychotherapy"]
+                        }
+                    ]
+
+                }
+            }
+        ],
+    ),
+], ):
     try:
-        parsed_json = json.loads(jsoninput)
-        publish_message(parsed_json)
+        main_model_schema = jsoninput.json()
+        publish_message(main_model_schema)
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
 
-    return JSONResponse(content={"message": "File uploaded successfully"})
+    return JSONResponse(content={"message": f"Data uploaded successfully {main_model_schema}"})
+
 
 @router.post("/ingest/raw/jsonld")
-async def ingest_json(jsonldinput: InputJSONSLdchema):
+async def ingest_json(jsonldinput: Annotated[
+    InputJSONSLdchema,
+    Body(
+        examples=[
+            {
+                "id": "1BCD",
+                "user": "U123r",
+                "date_created": "2024-04-30T12:42:32.203447",
+                "date_modified": "2024-04-30T12:42:32.203451",
+                "kg_data": {"@context": "https://schema.org", "@type": "Person", "name": "John Doe"}
+            }
+        ],
+    ),
+], ):
     try:
-        parsed_json = jsonldinput
-        if is_valid_jsonld(str(parsed_json)):
-            publish_message(parsed_json)
-            return JSONResponse(content={"message": "File uploaded successfully"})
+
+        json_data = jsonldinput.json()
+        if is_valid_jsonld(json_data):
+            publish_message(json_data)
+            return JSONResponse(content={"message": "Data uploaded successfully"})
         else:
             return JSONResponse(content={"message": "Invalid format data! Please provide correct JSON-LD data."})
 
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
-
 
 
 @router.post("/ingest/raw/text/")
