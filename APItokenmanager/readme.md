@@ -16,8 +16,10 @@ This utility allows administrators to efficiently  activate user, update, and re
 ![](images/scopes.png)
 
 ## Dependencies
-- PostgreSQL: The ![docker-postgresql](docker-postgresql) folder contains the docker compose file that can be used to spin up the PostgreSQL database.
+- PostgreSQL: The [docker-postgresql](docker-postgresql) folder contains the docker compose file that can be used to spin up the PostgreSQL database.
 
+## Dependent Application
+- [All REST applications that uses fast-api skeleton](https://github.com/sensein/fastapi-skeleton)
 
 ## Environment variables
 ```bash
