@@ -14,3 +14,16 @@ This utility allows administrators to efficiently  activate user, update, and re
 ![](images/overview.png)
 ![](images/users.png)
 ![](images/scopes.png)
+
+## Dependencies
+- PostgreSQL: The ![docker-postgresql](docker-postgresql) folder contains the docker compose file that can be used to spin up the PostgreSQL database.
+
+
+## Environment variables
+```bash
+DB_NAME: name of the database
+DB_USER: user name
+DB_PASSWORD: password
+DB_HOST: database connection URL, default is localhost
+DB_PORT: database port number, default is 5432
+```
