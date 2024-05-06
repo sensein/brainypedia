@@ -16,48 +16,48 @@
 # @File    : configuration.py
 # @Software: PyCharm
 
-from functools import lru_cache
-from typing import Optional
+import os
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-class BaseConfig(BaseSettings):
-    ENV_STATE: Optional[str] = None
-    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+from dotenv import load_dotenv
 
 
-class GlobalConfig(BaseConfig):
-    DATABASE_URL: Optional[str] = None
-    DB_FORCE_ROLL_BACK: bool = False
-    LOGTAIL_API_KEY: Optional[str] = None
+def load_environment(env_name="development"):
+    """
+    Load environment variables from the specified .env.development file.
+
+    Args:
+        env_name (str): Name of the environment (e.g., "production", "development").
+                        Defaults to "development".
+
+    Returns:
+        dict: A dictionary containing the loaded environment variables.
+    """
+    # Determine the path to the .env.development file based on the environment
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    env_file = os.path.join(root_dir, f".env.{env_name}")
+
+    # Load environment variables from the .env.development file
+    load_dotenv(dotenv_path=env_file)
+
+    # Return a dictionary containing the loaded environment variables
+    return {
+        "ENV_STATE": os.getenv("ENV_STATE"),
+        "DATABASE_URL": os.getenv("DATABASE_URL"),
+        "LOGTAIL_API_KEY": os.getenv("LOGTAIL_API_KEY"),
+        "JWT_POSTGRES_DATABASE_HOST_URL": os.getenv("JWT_POSTGRES_DATABASE_HOST_URL"),
+        "JWT_POSTGRES_DATABASE_PORT": os.getenv("JWT_POSTGRES_DATABASE_PORT"),
+        "JWT_POSTGRES_DATABASE_USER": os.getenv("JWT_POSTGRES_DATABASE_USER"),
+        "JWT_POSTGRES_TABLE_USER": os.getenv("JWT_POSTGRES_TABLE_USER", "Web_jwtuser"),
+        "JWT_POSTGRES_TABLE_SCOPE": os.getenv("JWT_POSTGRES_TABLE_SCOPE", "Web_scope"),
+        "JWT_POSTGRES_TABLE_USER_SCOPE_REL": os.getenv(
+            "JWT_POSTGRES_TABLE_USER_SCOPE_REL", "Web_jwtuser_scopes"
+        ),
+        "JWT_POSTGRES_DATABASE_PASSWORD": os.getenv("JWT_POSTGRES_DATABASE_PASSWORD"),
+        "JWT_POSTGRES_DATABASE_NAME": os.getenv("JWT_POSTGRES_DATABASE_NAME"),
+        "JWT_ALGORITHM": os.getenv("JWT_ALGORITHM", "HS256"),
+        "JWT_SECRET_KEY": os.getenv("JWT_SECRET_KEY"),
+    }
 
 
-class DevelopmentConfig(GlobalConfig):
-    """Get the development environment, i.e., environment variables in env file with prefix DEV"""
-
-    model_config = SettingsConfigDict(env_prefix="DEV_")
-
-
-class ProductionConfig(GlobalConfig):
-    """Get the production environment, i.e environment variables in env file with prefix PROD"""
-
-    model_config = SettingsConfigDict(env_prefix="PROD_")
-
-
-class TestConfig(GlobalConfig):
-    """Get the test environment, i.e., environment variables in env file with prefix TEST. Default test.db"""
-
-    DATABASE_URL: str = "sqlite:///test.db"
-    DB_FORCE_ROLL_BACK: bool = True
-
-    model_config = SettingsConfigDict(env_prefix="TEST_")
-
-
-@lru_cache()
-def get_config(env_state: str):
-    configs = {"dev": DevelopmentConfig, "prod": ProductionConfig, "test": TestConfig}
-    return configs[env_state]()
-
-
-config = get_config(BaseConfig().ENV_STATE)
+if __name__ == "__main__":
+    print(load_environment())

@@ -16,7 +16,7 @@
 # @File    : api_endpoints_input.py
 # @Software: PyCharm
 
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from fastapi import File, Form, UploadFile
 from fastapi.responses import JSONResponse
 from core.configure_rabbit_mq import publish_message
@@ -26,13 +26,19 @@ import json
 from core.pydantic_schema import InputJSONSLdchema, InputJSONSchema, InputTextSchema
 from core.shared import is_valid_jsonld
 from typing import Annotated
+from core.models.user import LoginUserIn
+from core.security import get_current_user, require_scopes
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/ingest/file", summary="Ingest a either CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD or TEXT files")
-async def ingest_file(id: str = Form(...), user: str = Form(...), filename: str = Form(...),
+@router.post("/ingest/file", summary="Ingest a either CSV, JSON, EXCEL, PDF, RDF, TTL, JSONLD or TEXT files",
+             dependencies=[Depends(require_scopes(["write"]))])
+async def ingest_file(user: Annotated[LoginUserIn, Depends(get_current_user)],
+                      id: str = Form(...),
+                      posting_user: str = Form(...),
+                      filename: str = Form(...),
                       file: UploadFile = File(...)):
     logger.info("Started ingestion operation")
 
@@ -47,47 +53,52 @@ async def ingest_file(id: str = Form(...), user: str = Form(...), filename: str 
     content = await file.read()
     publish_message(content)
     logger.info("Successful ingestion operation")
-    return JSONResponse(content={"message": "File uploaded successfully", "id": id, "user": user, "filename": filename})
+    return JSONResponse(
+        content={"message": "File uploaded successfully", "id": id, "user": posting_user, "filename": filename})
 
 
-@router.post("/ingest/raw/json")
-async def ingest_json(jsoninput: Annotated[
-    InputJSONSchema,
-    Body(
-        examples=[
-            {
-                "id": "1BCD",
-                "user": "U123r",
-                "date_created": "2024-04-30T12:42:32.203447",
-                "date_modified": "2024-04-30T12:42:32.203451",
-                "json_data": {
+@router.post("/ingest/raw/json", dependencies=[Depends(require_scopes(["write"]))])
+async def ingest_json(user: Annotated[LoginUserIn, Depends(get_current_user)],
+                      jsoninput: Annotated[
 
-                    "neuroscience_disorders": [
-                        {
-                            "disorder": "Alzheimer's disease",
-                            "description": "A progressive neurodegenerative disorder that leads to memory loss and cognitive decline.",
-                            "symptoms": ["Memory loss", "Confusion", "Trouble with language and reasoning"],
-                            "treatments": ["Medications (e.g., cholinesterase inhibitors)", "Cognitive therapy"]
-                        },
-                        {
-                            "disorder": "Parkinson's disease",
-                            "description": "A neurodegenerative disorder characterized by tremors, rigidity, and difficulty with movement.",
-                            "symptoms": ["Tremors", "Bradykinesia", "Postural instability"],
-                            "treatments": ["Levodopa", "Deep brain stimulation (DBS)"]
-                        },
-                        {
-                            "disorder": "Schizophrenia",
-                            "description": "A chronic and severe mental disorder that affects how a person thinks, feels, and behaves.",
-                            "symptoms": ["Hallucinations", "Delusions", "Disorganized thinking"],
-                            "treatments": ["Antipsychotic medications", "Psychotherapy"]
-                        }
-                    ]
+                          InputJSONSchema,
+                          Body(
+                              examples=[
+                                  {
+                                      "id": "1BCD",
+                                      "user": "U123r",
+                                      "date_created": "2024-04-30T12:42:32.203447",
+                                      "date_modified": "2024-04-30T12:42:32.203451",
+                                      "json_data": {
 
-                }
-            }
-        ],
-    ),
-], ):
+                                          "neuroscience_disorders": [
+                                              {
+                                                  "disorder": "Alzheimer's disease",
+                                                  "description": "A progressive neurodegenerative disorder that leads to memory loss and cognitive decline.",
+                                                  "symptoms": ["Memory loss", "Confusion",
+                                                               "Trouble with language and reasoning"],
+                                                  "treatments": ["Medications (e.g., cholinesterase inhibitors)",
+                                                                 "Cognitive therapy"]
+                                              },
+                                              {
+                                                  "disorder": "Parkinson's disease",
+                                                  "description": "A neurodegenerative disorder characterized by tremors, rigidity, and difficulty with movement.",
+                                                  "symptoms": ["Tremors", "Bradykinesia", "Postural instability"],
+                                                  "treatments": ["Levodopa", "Deep brain stimulation (DBS)"]
+                                              },
+                                              {
+                                                  "disorder": "Schizophrenia",
+                                                  "description": "A chronic and severe mental disorder that affects how a person thinks, feels, and behaves.",
+                                                  "symptoms": ["Hallucinations", "Delusions", "Disorganized thinking"],
+                                                  "treatments": ["Antipsychotic medications", "Psychotherapy"]
+                                              }
+                                          ]
+
+                                      }
+                                  }
+                              ],
+                          ),
+                      ], ):
     try:
         main_model_schema = jsoninput.json()
         publish_message(main_model_schema)
@@ -97,21 +108,23 @@ async def ingest_json(jsoninput: Annotated[
     return JSONResponse(content={"message": f"Data uploaded successfully {main_model_schema}"})
 
 
-@router.post("/ingest/raw/jsonld")
-async def ingest_json(jsonldinput: Annotated[
-    InputJSONSLdchema,
-    Body(
-        examples=[
-            {
-                "id": "1BCD",
-                "user": "U123r",
-                "date_created": "2024-04-30T12:42:32.203447",
-                "date_modified": "2024-04-30T12:42:32.203451",
-                "kg_data": {"@context": "https://schema.org", "@type": "Person", "name": "John Doe"}
-            }
-        ],
-    ),
-], ):
+@router.post("/ingest/raw/jsonld", dependencies=[Depends(require_scopes(["write"]))])
+async def ingest_json(user: Annotated[LoginUserIn, Depends(get_current_user)],
+                      jsonldinput: Annotated[
+                          InputJSONSLdchema,
+                          Body(
+                              examples=[
+                                  {
+                                      "id": "1BCD",
+                                      "user": "U123r",
+                                      "date_created": "2024-04-30T12:42:32.203447",
+                                      "date_modified": "2024-04-30T12:42:32.203451",
+                                      "kg_data": {"@context": "https://schema.org", "@type": "Person",
+                                                  "name": "John Doe"}
+                                  }
+                              ],
+                          ),
+                      ], ):
     try:
 
         json_data = jsonldinput.json()
@@ -125,22 +138,23 @@ async def ingest_json(jsonldinput: Annotated[
         raise HTTPException(status_code=400, detail="Invalid JSON" + str(e))
 
 
-@router.post("/ingest/raw/text/")
-async def ingest_text(text:
-Annotated[
-    InputTextSchema,
-    Body(
-        examples=[
-            {
-                "id": "1BCD",
-                "user": "U123r",
-                "date_created": "2024-04-30T12:42:32.203447",
-                "date_modified": "2024-04-30T12:42:32.203451",
-                "text_data": "This is sample text data for KGs construction"
-            }
-        ],
-    ),
-],):
+@router.post("/ingest/raw/text/", dependencies=[Depends(require_scopes(["write"]))])
+async def ingest_text(user: Annotated[LoginUserIn, Depends(get_current_user)],
+                      text:
+                      Annotated[
+                          InputTextSchema,
+                          Body(
+                              examples=[
+                                  {
+                                      "id": "1BCD",
+                                      "user": "U123r",
+                                      "date_created": "2024-04-30T12:42:32.203447",
+                                      "date_modified": "2024-04-30T12:42:32.203451",
+                                      "text_data": "This is sample text data for KGs construction"
+                                  }
+                              ],
+                          ),
+                      ], ):
     text_data = text.json()
     publish_message(text_data)
     return JSONResponse(content={"message": "File uploaded successfully"})
