@@ -25,7 +25,7 @@ load_dotenv(dotenv_path=env_file)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("BRAINYPEDIA_APITOKEN_MANAGER_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -112,9 +112,9 @@ WSGI_APPLICATION = "APIAuthManager.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', ),      # Reads from environment or uses a default
-        'USER': os.getenv('DB_USER', ),               # Reads from environment or uses a default
-        'PASSWORD': os.getenv('DB_PASSWORD', ),   # Reads from environment or uses a default
+        'NAME': os.getenv('DB_NAME'),      # Reads from environment or uses a default
+        'USER': os.getenv('DB_USER'),               # Reads from environment or uses a default
+        'PASSWORD': os.getenv('DB_PASSWORD'),   # Reads from environment or uses a default
         'HOST': os.getenv('DB_HOST', 'localhost'),                  # Reads from environment or uses a default
         'PORT': os.getenv('DB_PORT', '5432'),                       # Reads from environment or uses a default
     }
@@ -158,6 +158,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "APIAuthManager/static")]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+print(STATIC_ROOT, STATICFILES_DIRS)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
