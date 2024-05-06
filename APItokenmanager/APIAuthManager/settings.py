@@ -106,8 +106,6 @@ WSGI_APPLICATION = "APIAuthManager.wsgi.application"
 
 # settings.py
 
-import os
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
