@@ -17,4 +17,4 @@ DJANGO_SUPERUSER_EMAIL="brainadmin@admin.com" \
 python manage.py createsuperuser --noinput
 
 # Command to run the app
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "BrainyPediaApp.wsgi:application"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "APIAuthManager.wsgi:application"]
