@@ -23,6 +23,7 @@ from typing import Dict, Any
 class BaseSchema(BaseModel):
     id: str
     user: str
+    type: str
     date_created: datetime = datetime.now()
     date_modified: datetime = datetime.now()
 
@@ -36,7 +37,8 @@ class InputJSONSchema(BaseSchema):
         }
 
 
-class InputJSONSLdchema(BaseSchema):
+class InputJSONSLdchema(BaseModel):
+    type: str
     kg_data: Dict[Any, Any]
 
 

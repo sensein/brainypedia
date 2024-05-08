@@ -21,9 +21,9 @@ import os
 from dotenv import load_dotenv
 
 
-def load_environment(env_name="development"):
+def load_environment(env_name="env"):
     """
-    Load environment variables from the specified .env.development file.
+    Load environment variables from the specified .env.development.development file.
 
     Args:
         env_name (str): Name of the environment (e.g., "production", "development").
@@ -32,11 +32,11 @@ def load_environment(env_name="development"):
     Returns:
         dict: A dictionary containing the loaded environment variables.
     """
-    # Determine the path to the .env.development file based on the environment
+    # Determine the path to the .env.development.development file based on the environment
     root_dir = os.path.dirname(os.path.abspath(__file__))
-    env_file = os.path.join(root_dir, f".env.{env_name}")
+    env_file = os.path.join(root_dir, f".{env_name}")
 
-    # Load environment variables from the .env.development file
+    # Load environment variables from the .env file
     load_dotenv(dotenv_path=env_file)
 
     # Return a dictionary containing the loaded environment variables
@@ -56,8 +56,14 @@ def load_environment(env_name="development"):
         "JWT_POSTGRES_DATABASE_NAME": os.getenv("JWT_POSTGRES_DATABASE_NAME"),
         "JWT_ALGORITHM": os.getenv("JWT_ALGORITHM", "HS256"),
         "JWT_SECRET_KEY": os.getenv("JWT_SECRET_KEY"),
+
+    #     Ingestion specific environment
+        "RABBITMQ_USERNAME": os.getenv("RABBITMQ_USERNAME"),
+        "RABBITMQ_PASSWORD": os.getenv("RABBITMQ_PASSWORD"),
+        "RABBITMQ_URL": os.getenv("RABBITMQ_URL", "localhost"),
+        "RABBITMQ_PORT": os.getenv("RABBITMQ_PORT", 5672),
+        "RABBITMQ_VHOST": os.getenv("RABBITMQ_VHOST","/")
     }
 
 
-if __name__ == "__main__":
-    print(load_environment())
+

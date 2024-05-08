@@ -18,20 +18,20 @@ import json
 # @Software: PyCharm
 
 
-from dotenv import load_dotenv
-import os
+from core.configuration import load_environment
 from fastapi import HTTPException
 import pika
 
 # Load environment variables
-load_dotenv()
+
 
 # Retrieve username and password from environment
-rabbitmq_username = os.getenv("RABBITMQ_USERNAME")
-rabbitmq_password = os.getenv("RABBITMQ_PASSWORD")
-rabbitmq_url = os.getenv("RABBITMQ_URL", "localhost")
-rabbitmq_port = os.getenv("RABBITMQ_PORT", 5672)
-rabbitmq_vhost = os.getenv("RABBITMQ_VHOST", "/")
+rabbitmq_username = load_environment()["RABBITMQ_USERNAME"]
+rabbitmq_password = load_environment()["RABBITMQ_PASSWORD"]
+rabbitmq_url = load_environment()["RABBITMQ_URL"]
+rabbitmq_port = load_environment()["RABBITMQ_PORT"]
+rabbitmq_vhost = load_environment()["RABBITMQ_VHOST"]
+
 
 
 def connect_to_rabbitmq():
@@ -44,7 +44,7 @@ def connect_to_rabbitmq():
     return connection, channel
 
 
-def publish_message(message, exchange_name='ingest_message'):
+def publish_message(message, exchange_name="ingest_message"):
     """Publish a message to a fanout exchange in RabbitMQ, meaning, there will be multiple consumers (or subscribers)
     for the same mesage."""
     connection, channel = connect_to_rabbitmq()

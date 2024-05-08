@@ -8,6 +8,7 @@ This ingest service, i.e., the producer service implements the functionalities t
   - RABBITMQ_URL, i.e., the hostname, by default it is localhost
   - RABBITMQ_PORT, by default 5672 is used
   - RABBITMQ_VHOST, default vhost is "/"
+  - 
 
 ## Features Implemented
 - [x] Logging  

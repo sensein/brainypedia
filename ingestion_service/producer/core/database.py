@@ -48,21 +48,6 @@ async def close_db_connection(conn):
 
 async def insert_data(conn, fullname, email, password):
     try:
-
-        pg_query = f"""
-            INSERT INTO \"{table_name_user}\" (full_name, email, password, is_active, created_at, updated_at) 
-            VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
-        """
-        jwt_user_id = await conn.fetchval(
-            pg_query,
-            fullname,
-            email,
-            password,
-            False,
-            datetime.utcnow(),
-            datetime.utcnow(),
-        )
-
         scope_exist_id = await select_scope_id(conn)
         if not scope_exist_id:
             # First insert the default read access
@@ -77,6 +62,19 @@ async def insert_data(conn, fullname, email, password):
                 datetime.utcnow(),
                 datetime.utcnow(),
             )
+            pg_query = f"""
+                INSERT INTO \"{table_name_user}\" (full_name, email, password, is_active, created_at, updated_at) 
+                VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+            """
+            jwt_user_id = await conn.fetchval(
+                pg_query,
+                fullname,
+                email,
+                password,
+                False,
+                datetime.utcnow(),
+                datetime.utcnow(),
+            )
 
             # now connect with rel
             await conn.execute(
@@ -85,6 +83,20 @@ async def insert_data(conn, fullname, email, password):
                 new_scope_id,
             )
         else:
+            pg_query = f"""
+                INSERT INTO \"{table_name_user}\" (full_name, email, password, is_active, created_at, updated_at) 
+                VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+            """
+            jwt_user_id = await conn.fetchval(
+                pg_query,
+                fullname,
+                email,
+                password,
+                False,
+                datetime.utcnow(),
+                datetime.utcnow(),
+            )
+
             await conn.execute(
                 f"""INSERT INTO \"{table_relation}\" (jwtuser_id, scope_id) VALUES ($1, $2)""",
                 jwt_user_id,
@@ -98,10 +110,13 @@ async def insert_data(conn, fullname, email, password):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def insert_scope(conn):
+async def insert_scope(conn=None):
     try:
+        if conn is None:
+            conn = await connect_postgres()
+            query = f"SELECT id FROM \"{table_name_scope}\" WHERE NAME = 'read'"
         row = await conn.fetchrow(
-            "SELECT id FROM \"{table_name_scope}\" WHERE NAME = 'read'"
+            query
         )
         if row:
             return row
@@ -110,11 +125,20 @@ async def insert_scope(conn):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def select_scope_id(conn):
+async def select_scope_id(conn=None):
+    print("*" * 100)
+    print(conn)
+    print("*" * 100)
     try:
+        if conn is None:
+            conn = await connect_postgres()
+        query = f"SELECT id FROM \"{table_name_scope}\" WHERE NAME = 'read' LIMIT 1;"
         scope_id = await conn.fetchval(
-            "SELECT id FROM \"{table_name_scope}\" WHERE NAME = 'read' LIMIT 1"
+            query
         )
+        print("*"*100)
+        print(scope_id)
+        print("*"*100)
         return scope_id  # Returns the user ID if found, or None if no user exists
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
              dependencies=[Depends(require_scopes(["write"]))])
 async def ingest_file(user: Annotated[LoginUserIn, Depends(get_current_user)],
                       id: str = Form(...),
+                      type: str = "file",
                       posting_user: str = Form(...),
                       filename: str = Form(...),
                       file: UploadFile = File(...)):
@@ -54,19 +55,19 @@ async def ingest_file(user: Annotated[LoginUserIn, Depends(get_current_user)],
     publish_message(content)
     logger.info("Successful ingestion operation")
     return JSONResponse(
-        content={"message": "File uploaded successfully", "id": id, "user": posting_user, "filename": filename})
+        content={"message": "File uploaded successfully", "id": id, "user": posting_user, "type":{type}, "filename": filename})
 
 
 @router.post("/ingest/raw/json", dependencies=[Depends(require_scopes(["write"]))])
 async def ingest_json(user: Annotated[LoginUserIn, Depends(get_current_user)],
                       jsoninput: Annotated[
-
                           InputJSONSchema,
                           Body(
                               examples=[
                                   {
                                       "id": "1BCD",
                                       "user": "U123r",
+                                      "type": "json",
                                       "date_created": "2024-04-30T12:42:32.203447",
                                       "date_modified": "2024-04-30T12:42:32.203451",
                                       "json_data": {
@@ -108,17 +109,14 @@ async def ingest_json(user: Annotated[LoginUserIn, Depends(get_current_user)],
     return JSONResponse(content={"message": f"Data uploaded successfully {main_model_schema}"})
 
 
-@router.post("/ingest/raw/jsonld", dependencies=[Depends(require_scopes(["write"]))])
+@router.post("/ingest/raw/jsonld")
 async def ingest_json(user: Annotated[LoginUserIn, Depends(get_current_user)],
                       jsonldinput: Annotated[
                           InputJSONSLdchema,
                           Body(
                               examples=[
                                   {
-                                      "id": "1BCD",
-                                      "user": "U123r",
-                                      "date_created": "2024-04-30T12:42:32.203447",
-                                      "date_modified": "2024-04-30T12:42:32.203451",
+                                      "type": "jsonld",
                                       "kg_data": {"@context": "https://schema.org", "@type": "Person",
                                                   "name": "John Doe"}
                                   }
@@ -148,6 +146,7 @@ async def ingest_text(user: Annotated[LoginUserIn, Depends(get_current_user)],
                                   {
                                       "id": "1BCD",
                                       "user": "U123r",
+                                      "type":"text",
                                       "date_created": "2024-04-30T12:42:32.203447",
                                       "date_modified": "2024-04-30T12:42:32.203451",
                                       "text_data": "This is sample text data for KGs construction"

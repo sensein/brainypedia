@@ -20,7 +20,6 @@ from logging.config import dictConfig
 
 from core.configuration import load_environment
 
-print(load_environment())
 handlers = ["default", "rotating_file"]
 if load_environment()["ENV_STATE"] == "prod":
     handlers = [
