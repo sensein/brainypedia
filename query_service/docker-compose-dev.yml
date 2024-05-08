@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app-dev:
+  app-dev-query-service:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +10,11 @@ services:
     environment:
       - ENVIRONMENT=debug
     restart: on-failure
+    networks:
+      - webnet
 
+networks:
+  webnet:
+    driver: bridge
 
 

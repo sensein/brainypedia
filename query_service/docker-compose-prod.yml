@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app-prod:
+  app-prod-query-service:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +10,10 @@ services:
     environment:
       - ENVIRONMENT=production
     restart: unless-stopped
+    networks:
+      - webnet
 
-
+networks:
+  webnet:
+    driver: bridge
 
