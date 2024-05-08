@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  app-dev-query_service:
+  app-dev:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8010:8010"
     environment:
       - ENVIRONMENT=debug
     restart: on-failure

@@ -18,10 +18,10 @@
 
 from logging.config import dictConfig
 
-from core.configuration import config, DevelopmentConfig
+from core.configuration import load_environment
 
 handlers = ["default", "rotating_file"]
-if config.ENV_STATE == "prod":
+if load_environment()["ENV_STATE"] == "prod":
     handlers = [
         "default",
         "rotating_file",
@@ -37,7 +37,9 @@ def configure_logging() -> None:
             "filters": {
                 "correlation_id": {
                     "()": "asgi_correlation_id.CorrelationIdFilter",
-                    "uuid_length": 8 if isinstance(config, DevelopmentConfig) else 32,
+                    "uuid_length": (
+                        8 if load_environment()["ENV_STATE"] == "dev" else 32
+                    ),
                     "default_value": "-",
                 },
             },
@@ -65,14 +67,14 @@ def configure_logging() -> None:
                     "level": "DEBUG",
                     "formatter": "console",
                     "filters": ["correlation_id"],
-                    "source_token": config.LOGTAIL_API_KEY,
+                    "source_token": load_environment()["LOGTAIL_API_KEY"],
                 },
                 "rotating_file": {
                     "class": "logging.handlers.RotatingFileHandler",
                     "level": "DEBUG",
                     "formatter": "file",
                     "filters": ["correlation_id"],
-                    "filename": "worker.log",
+                    "filename": "fastapi.log",
                     "maxBytes": 1024 * 1024 * 40,  # 40 MB each file
                     "backupCount": 2,  # total number of files you want to keep after that the file will be deleted
                     "encoding": "utf8",
@@ -83,10 +85,10 @@ def configure_logging() -> None:
                     "handlers": ["default", "rotating_file", "logtail"],
                     "level": "INFO",
                 },
-                "worker": {
+                "apiinfo": {
                     "handlers": handlers,
                     "level": (
-                        "DEBUG" if isinstance(config, DevelopmentConfig) else "INFO"
+                        "DEBUG" if load_environment()["ENV_STATE"] == "dev" else "INFO"
                     ),
                     "propogate": False,
                 },
