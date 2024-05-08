@@ -6,10 +6,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8002:8002"
     environment:
       - ENVIRONMENT=production
     restart: unless-stopped
+    networks:
+      - webnet
 
-
-
+networks:
+  webnet:
+    driver: bridge
