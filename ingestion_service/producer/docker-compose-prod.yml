@@ -10,6 +10,11 @@ services:
     environment:
       - ENVIRONMENT=production
     restart: unless-stopped
+    networks:
+      - webnet
 
+networks:
+  webnet:
+    driver: bridge
 
 
