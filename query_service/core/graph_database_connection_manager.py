@@ -42,7 +42,7 @@ def _connectionmanager(request_type="get"):
     graphdatabase_port = load_environment()["GRAPHDATABASE_PORT"]
     graphdatabase_type = load_environment()["GRAPHDATABASE_TYPE"]
     graphdatabase_repository = load_environment()["GRAPHDATABASE_REPOSITORY"]
-    print(f"Connecting to {graphdatabase_type}-{graphdatabase_username}-{graphdatabase_password}-{graphdatabase_hostname}")
+    print(f"Connecting to {graphdatabase_type}-{graphdatabase_username}-{graphdatabase_password}-{graphdatabase_hostname} Repository: {graphdatabase_repository}")
 
     if not (graphdatabase_username and graphdatabase_password and graphdatabase_hostname and graphdatabase_type):
         raise ValueNotSetException()
@@ -62,7 +62,6 @@ def _connectionmanager(request_type="get"):
             endpoint = f"{hostname}/sparql"
     else:
         raise ValueError("Unsupport database.")
-
 
     try:
         sparql = SPARQLWrapper(endpoint)
