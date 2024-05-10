@@ -31,7 +31,7 @@ class KnowledgeBaseViewerModel(models.Model):
 class QueryEndpoint(models.Model):
     endpoint_title = models.CharField(max_length=350, blank=False, unique=True)
     query_url = models.URLField(blank=False, unique=True)
-    query_endpoint_type = models.CharField(max_length=20, choices=ENDPOINT_TYPE, default='get')
+    query_endpoint_type = models.CharField(max_length=20, unique=True, choices=ENDPOINT_TYPE, default='get')
     endpoint_service_type = models.CharField(max_length=20, choices=ENDPOINT_SERVICE_TYPE, default='query')
     status_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
