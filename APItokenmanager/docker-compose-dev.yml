@@ -12,3 +12,9 @@ services:
     restart: on-failure
     volumes:
       - ./:/app
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
