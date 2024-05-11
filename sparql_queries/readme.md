@@ -54,3 +54,21 @@
        FILTER (?s = NIMP:LI-DDFMNG372245)
     } 
     ```
+  - ### Get data where either subject, predicate or object match to BC-ABUEKB857169.
+      ```sparql
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+      SELECT ?subject ?predicate ?object
+      WHERE {
+        { BIND(<http://example.org/NIMP/BC-ABUEKB857169> AS ?id)
+          ?subject ?predicate ?id . }
+        UNION
+        { BIND(<http://example.org/NIMP/BC-ABUEKB857169> AS ?id)
+          ?id ?predicate ?object . }
+        UNION
+        { BIND(<http://example.org/NIMP/BC-ABUEKB857169> AS ?id)
+          ?subject ?id ?object . }
+      }
+      ```
+
+
