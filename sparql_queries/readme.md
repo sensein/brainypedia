@@ -70,5 +70,45 @@
           ?subject ?id ?object . }
       }
       ```
-
-
+- ## SPARQL query to get data of LibraryPool category
+  ```sparql
+  PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+  PREFIX NIMP: <http://example.org/NIMP/> 
+  PREFIX biolink: <https://w3id.org/biolink/vocab/> 
+  PREFIX prov: <http://www.w3.org/ns/prov#> 
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+  
+  SELECT ?id ?label ?local_tube_id
+  WHERE {
+    ?id ?p ?o.
+    { 
+      SELECT DISTINCT ?entity ?label ?local_tube_id
+      WHERE { ?entity biolink:category bican:LibraryPool. 			
+              ?entity rdfs:label ?label.
+              ?entity bican:local_tube_id ?local_tube_id
+          }
+    } FILTER (?id = ?entity)
+  }
+  ```
+- ## Tissue Sample
+  ```sparql
+  PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+  PREFIX NIMP: <http://example.org/NIMP/> 
+  PREFIX biolink: <https://w3id.org/biolink/vocab/> 
+  PREFIX prov: <http://www.w3.org/ns/prov#> 
+  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+  
+  SELECT ?id ?label ?structure
+  WHERE {
+    ?id ?p ?o.
+    { 
+      SELECT DISTINCT ?entity ?label ?structure
+      WHERE { ?entity biolink:category bican:TissueSample.  
+              ?entity rdfs:label ?label.
+              ?entity bican:structure ?structure.
+          }
+    } FILTER (?id = ?entity)
+  }
+  ```
