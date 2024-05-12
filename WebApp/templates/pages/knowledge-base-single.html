@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load data_filters %}
+{% block inpagecss %}
+    .left-sidebar-menu{
+    margin:5px;
+    }
+{% endblock inpagecss %}
+{% block bodycontent %}
+    <div class="container">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{ label }}</h5>
+                {% for data in fetched_data %}
+                    {% if "label" in data.property %}
+                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ data.property|extract_last_part|capitalize_first_letter }}: {{ data.value }}</h6>
+                    {% else %}
+                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ data.property|extract_last_part|capitalize_first_letter }}:</h6>
+                        {% if data.value|is_list %}
+                            {% for s_value in data.value %}
+                                {% if s_value|is_url %}
+                                <a
+                                                href="{% url 'knowledge_base_single' s_value|extract_last_two_part %}?uri={{ s_value }}">{{ s_value|extract_last_two_part }}</a>
+                                {% else %}
+                                     <i>{{ s_value }}</i>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% if data.value|is_url %}
+                                 <a
+                                                href="{% url 'knowledge_base_single' data.value|extract_last_two_part %}?uri={{ data.value }}">{{ data.value|extract_last_two_part }}</a>
+                                {% else %}
+                                     <i>{{ data.value }}</i>
+                                {% endif %}
+                        {% endif %}
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+{% endblock bodycontent %}
