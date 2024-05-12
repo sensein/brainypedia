@@ -19,7 +19,7 @@ class KnowledgeBaseViewerModel(models.Model):
     left_side_menu_title = models.CharField(max_length=350, blank=False, unique=True, help_text="Left side menu title")
     slug = AutoSlugField(populate_from='left_side_menu_title', unique=False)
     sparql_query = models.TextField(blank=False)
-    default_kb = models.BooleanField(blank=False, unique=True, default=False)
+    default_kb = models.BooleanField(blank=False, default=False)
     display_column_first = models.CharField(max_length=150, blank=False,
                                             help_text="The column that will be displayed when the page loads.")
     display_column_second = models.CharField(max_length=150, blank=False,
