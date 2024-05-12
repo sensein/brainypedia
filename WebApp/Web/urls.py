@@ -22,7 +22,8 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    path('knowledge-base/<slug:slug>', views.knowledge_base, name='knowledge_base'),
-    path('knowledge-base', views.knowledge_base, name='knowledge_base'),
-    path('', views.index, name='index'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+                  path('knowledge-base-detail/<str:id>', views.knowledge_base_single, name='knowledge_base_single'),
+path('knowledge-base/<slug:slug>', views.knowledge_base_slug, name='knowledge_base_slug'),
+                  path('knowledge-base', views.knowledge_base, name='knowledge_base'),
+                  path('', views.index, name='index'),
+              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

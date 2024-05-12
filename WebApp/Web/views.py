@@ -1,13 +1,72 @@
 from django.shortcuts import render
-from .models import KnowledgeBaseViewerModel
+from .models import KnowledgeBaseViewerModel, QueryEndpoint
+import requests
+import json
+from .shared import get_filter_uirs_label
+from .shared import extract_data_either_s_p_o_match, format_data_for_kb_single
+
+
 def index(request):
     return render(request, "pages/index.html")
 
 
+def fetch_knowledge_base(query_or_search_input, query_endpoint_type="get", endpoint_service_type="query"):
+    endpoints = QueryEndpoint.objects.all().filter(query_endpoint_type=query_endpoint_type,
+                                                   endpoint_service_type=endpoint_service_type)
+    payload = {"sparql_query": query_or_search_input}
+    response = requests.get(endpoints[0].query_url, params=payload)
+    if response.status_code == 200:
+        return response.json()
+
+
+def get_knowledge_base(kbobj):
+    labels = get_filter_uirs_label(kbobj)
+    query_or_search_input = kbobj[0].sparql_query
+    response_data = fetch_knowledge_base(query_or_search_input)
+    fetched_data = response_data["message"]["results"]["bindings"]
+
+    if fetched_data:
+        return  {
+            "knowledge_base": kbobj,
+            "fetched_data": fetched_data,
+            "processed_label": labels["processed_label"],
+            "pre_processed_label": labels["pre_processed_label"][0]
+        }
+    else:
+        return {
+            "knowledge_base": False
+        }
 def knowledge_base(request):
-    kbobj = KnowledgeBaseViewerModel.objects.all().filter(status_active=True)
-    context = {
-        "knowledge_base": kbobj
-    }
+    kbobj = KnowledgeBaseViewerModel.objects.all().filter(status_active=True, default_kb=True)
+    other_items = KnowledgeBaseViewerModel.objects.all().filter(status_active=True).order_by("-default_kb")
+    context = get_knowledge_base(kbobj=kbobj)
+    context["menu_items"] = other_items
+
     return render(request,
                   "pages/knowledge-base.html", context=context)
+
+
+def knowledge_base_single(request, id):
+    param = request.GET.get('uri')
+    query = extract_data_either_s_p_o_match(param)
+    response_data = fetch_knowledge_base(query)
+    fetched_data = response_data["message"]["results"]["bindings"]
+    label = id
+    formtted_data = format_data_for_kb_single(fetched_data)
+
+    context = {
+        "uri_param": param,
+        "label": label,
+        "fetched_data":formtted_data
+    }
+    return render(request, "pages/knowledge-base-single.html", context=context)
+
+def knowledge_base_slug(request, slug):
+    kbobj = KnowledgeBaseViewerModel.objects.all().filter(slug=slug)
+    other_items = KnowledgeBaseViewerModel.objects.all().filter(status_active=True).order_by("-default_kb")
+    context = get_knowledge_base(kbobj=kbobj)
+    context["menu_items"] = other_items
+
+    return render(request,
+                  "pages/knowledge-base.html", context=context)
+
