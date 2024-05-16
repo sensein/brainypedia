@@ -112,3 +112,89 @@
     } FILTER (?id = ?entity)
   }
   ```
+  - ## GET doner and tissue sample as well as the intermediate hops count
+  ```sparql
+  PREFIX BICAN: <https://identifiers.org/brain-bican/vocab/>
+  PREFIX biolink: <https://w3id.org/biolink/vocab/> 
+  PREFIX prov: <http://www.w3.org/ns/prov#> 
+  PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+  
+  SELECT ?entity ?target ?targetType ?intermediate ?hopCount
+  WHERE {
+    {
+      SELECT ?entity ?target ?targetType (COUNT(?mid) AS ?hopCount)
+      WHERE {
+        ?entity biolink:category BICAN:DissociatedCellSample.
+        ?entity (prov:wasDerivedFrom)* ?mid.
+        ?mid prov:wasDerivedFrom ?target.
+        ?target biolink:category ?targetType.
+        FILTER(?targetType IN (bican:Donor, bican:TissueSample))
+      }
+      GROUP BY ?entity ?target ?targetType
+    }
+  
+    ?entity biolink:category BICAN:DissociatedCellSample.
+    ?entity (prov:wasDerivedFrom)* ?intermediate.
+    ?intermediate (prov:wasDerivedFrom)+ ?target.
+    ?target biolink:category ?targetType.
+    FILTER(?targetType IN (bican:Donor, bican:TissueSample))
+  }
+  ORDER BY ?entity ?hopCount
+  ```
+  
+- ## GET doner and tissue sample as well as species value from doner and structure from tissue sample to link to GARS and ANSRS
+```sparql
+  PREFIX BICAN: <https://identifiers.org/brain-bican/vocab/>
+  PREFIX biolink: <https://w3id.org/biolink/vocab/> 
+  PREFIX prov: <http://www.w3.org/ns/prov#> 
+  PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+  
+  SELECT ?entity ?target ?targetType ?intermediate ?species_value_for_taxon_match ?structure_value_for_tissue_sample
+  WHERE {
+    {
+      SELECT ?entity ?target ?targetType (COUNT(?mid) AS ?hopCount)
+      WHERE {
+        ?entity biolink:category BICAN:DissociatedCellSample.
+        ?entity (prov:wasDerivedFrom)* ?mid.
+        ?mid prov:wasDerivedFrom ?target.
+        ?target biolink:category ?targetType.
+        FILTER(?targetType IN (bican:Donor, bican:TissueSample))
+      }
+      GROUP BY ?entity ?target ?targetType
+    }
+  
+    ?entity biolink:category BICAN:DissociatedCellSample.
+    ?entity (prov:wasDerivedFrom)* ?intermediate.
+    ?intermediate (prov:wasDerivedFrom)+ ?target.
+    ?target biolink:category ?targetType.
+    FILTER(?targetType IN (bican:Donor, bican:TissueSample))
+  
+    OPTIONAL {
+      ?target bican:species ?species_value_for_taxon_match.
+      FILTER(?targetType = bican:Donor)
+    }
+  
+    OPTIONAL {
+      ?target bican:structure ?structure_value_for_tissue_sample.
+      FILTER(?targetType = bican:TissueSample)
+    }
+  }
+  ORDER BY ?entity ?hopCount
+
+```
+
+- ## Get GARS detail
+  Use ?species_value_for_taxon_match
+```sparql
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+PREFIX NIMP: <http://example.org/NIMP/>
+PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+
+SELECT *
+WHERE { 
+    ?gar_id biolink:in_taxon ?gar_obj.
+  	?gar_obj biolink:iri ?biriiri.
+  	FILTER(CONTAINS(STR(?biriiri), "NCBITaxon_9544"))
+}
+
+```
