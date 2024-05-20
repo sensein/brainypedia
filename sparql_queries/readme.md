@@ -197,7 +197,7 @@ WHERE {
   	FILTER(CONTAINS(STR(?biriiri), "NCBITaxon_9544"))
 }
 ```
-- ## Filter by NIMP ID
+- ## Filter by NIMP ID + Category
 ```sparql
 PREFIX biolink: <https://w3id.org/biolink/vocab/>
   PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -234,4 +234,39 @@ SELECT DISTINCT ?entity (?targetType AS ?targets) ?species_value_for_taxon_match
              FILTER(?entity = <http://example.org/NIMP/LP-BIDMJM675091>) 
   }
   ORDER BY ?entity ?hopCount
+```
+- ## Filter by ID 
+```sparql
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+  PREFIX prov: <http://www.w3.org/ns/prov#>
+  PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+
+  PREFIX NIMP: <http://example.org/NIMP/>
+SELECT DISTINCT ?entity (?targetType AS ?targets) ?species_value_for_taxon_match ?structure_value_for_tissue_sample
+  WHERE {
+    {
+      SELECT ?entity ?target ?targetType (COUNT(?mid) AS ?hopCount)
+      WHERE { 
+        ?entity (prov:wasDerivedFrom)+ ?mid.
+        ?mid prov:wasDerivedFrom ?target.
+        ?target biolink:category ?targetType.
+        FILTER(?targetType IN (bican:Donor, bican:TissueSample)) 
+      }
+      GROUP BY ?entity ?target ?targetType
+    } 
+    ?entity (prov:wasDerivedFrom)+ ?intermediate.
+    ?intermediate (prov:wasDerivedFrom)+ ?target.
+    ?target biolink:category ?targetType.
+    FILTER(?targetType IN (bican:Donor, bican:TissueSample))  
+
+    OPTIONAL {
+      ?target bican:species ?species_value_for_taxon_match.
+      FILTER(?targetType = bican:Donor)
+    }
+    OPTIONAL {
+      ?target bican:structure ?structure_value_for_tissue_sample.
+    }
+    
+             FILTER(?entity = <http://example.org/NIMP/LP-BIDMJM675091>) 
+  }
 ```
