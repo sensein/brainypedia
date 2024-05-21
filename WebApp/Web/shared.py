@@ -122,6 +122,47 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
         """).format(category, nimp_id)
     return query
 
+def nimp_gars(taxon_id):
+    query = textwrap.dedent("""
+            PREFIX biolink: <https://w3id.org/biolink/vocab/>
+            PREFIX NIMP: <http://example.org/NIMP/>
+            PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+            
+            SELECT DISTINCT ?property ?object
+            WHERE {{ 
+                {{
+                    SELECT ?gar_obj WHERE {{
+                        ?gar_id biolink:in_taxon ?gar_obj.
+                        ?gar_obj biolink:iri ?biriiri.
+                        FILTER(CONTAINS(STR(?biriiri), {0}))
+                    }}
+                }}
+                OPTIONAL {{
+                    ?gar_obj ?property ?object .
+                }}
+            }}
+    """).format(taxon_id)
+    return query
+
+def nimp_ansrs(structure):
+    query = textwrap.dedent("""
+        PREFIX ansrs: <https://w3id.org/my-org/ansrs-schema/>
+        PREFIX biolink: <https://w3id.org/biolink/vocab/>
+        SELECT DISTINCT ?s (GROUP_CONCAT(DISTINCT ?property; separator=", ") AS ?property) (GROUP_CONCAT(DISTINCT ?object; separator=", ") AS ?object) 
+        WHERE {{ 
+            {{
+                SELECT ?s ?o WHERE {{
+                   ?s ansrs:has_parent_parcellation_term ?o.  
+                    FILTER(CONTAINS(STR(?o), "{0}"))
+                }}
+            }}
+            OPTIONAL {{
+                ?s ?property ?object .
+            }}
+        }} GROUP BY ?s
+         """).format(structure)
+    return query
+
 def group_dict(list_of_dict):
     grouped_data = defaultdict(list)
     for item in list_of_dict:
@@ -135,7 +176,6 @@ def group_dict(list_of_dict):
             result.append({'property': key, 'value': values[0]})  # Only take the single value out of the list
 
     return result
-
 
 def format_data_for_kb_single(fetched_data):
     data_to_display = []
