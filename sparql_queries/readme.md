@@ -242,7 +242,7 @@ PREFIX biolink: <https://w3id.org/biolink/vocab/>
   PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
 
   PREFIX NIMP: <http://example.org/NIMP/>
-SELECT DISTINCT ?entity (?targetType AS ?targets) ?species_value_for_taxon_match ?structure_value_for_tissue_sample
+SELECT DISTINCT ?entity (?targetType AS ?targets) ?hopCount ?species_value_for_taxon_match ?structure_value_for_tissue_sample
   WHERE {
     {
       SELECT ?entity ?target ?targetType (COUNT(?mid) AS ?hopCount)
@@ -269,4 +269,63 @@ SELECT DISTINCT ?entity (?targetType AS ?targets) ?species_value_for_taxon_match
     
              FILTER(?entity = <http://example.org/NIMP/LP-BIDMJM675091>) 
   }
+```
+- ## Simplified version, when hopcount is not used and result returend as list
+```sparql
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+PREFIX NIMP: <http://example.org/NIMP/>
+
+SELECT DISTINCT ?entity (GROUP_CONCAT(DISTINCT ?targetType; separator=", ") AS ?tissuedonertype) (GROUP_CONCAT(DISTINCT ?species_value_for_taxon_match; separator=", ") AS ?species_value_match_in_gars) (GROUP_CONCAT(DISTINCT ?structure_value_for_tissue_sample; separator=", ") AS ?structure_value_match_in_ansrs)
+WHERE {
+  ?entity biolink:category <https://identifiers.org/brain-bican/vocab/LibraryPool>.
+  ?entity (prov:wasDerivedFrom)+ ?intermediate.
+  ?intermediate (prov:wasDerivedFrom)+ ?target.
+  ?target biolink:category ?targetType.
+  FILTER(?targetType IN (bican:Donor, bican:TissueSample))  
+
+  OPTIONAL {
+    ?target bican:species ?species_value_for_taxon_match.
+    FILTER(?targetType = bican:Donor)
+  }
+  OPTIONAL {
+    ?target bican:structure ?structure_value_for_tissue_sample.
+  }
+  
+  FILTER(?entity = <http://example.org/NIMP/LP-BIDMJM675091>) 
+}
+GROUP BY ?entity
+ORDER BY ?entity
+
+```
+
+- ## Retrieve result as list
+```sparql
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+PREFIX NIMP: <http://example.org/NIMP/>
+
+SELECT DISTINCT ?entity (GROUP_CONCAT(DISTINCT ?targetType; separator=", ") AS ?tissuedonertype) (GROUP_CONCAT(DISTINCT ?species_value_for_taxon_match; separator=", ") AS ?species_value_match_in_gars) (GROUP_CONCAT(DISTINCT ?structure_value_for_tissue_sample; separator=", ") AS ?structure_value_match_in_ansrs)
+WHERE {
+  ?entity biolink:category <https://identifiers.org/brain-bican/vocab/LibraryPool>.
+  ?entity (prov:wasDerivedFrom)+ ?intermediate.
+  ?intermediate (prov:wasDerivedFrom)+ ?target.
+  ?target biolink:category ?targetType.
+  FILTER(?targetType IN (bican:Donor, bican:TissueSample))  
+
+  OPTIONAL {
+    ?target bican:species ?species_value_for_taxon_match.
+    FILTER(?targetType = bican:Donor)
+  }
+  OPTIONAL {
+    ?target bican:structure ?structure_value_for_tissue_sample.
+  }
+  
+  FILTER(?entity = <http://example.org/NIMP/LP-BIDMJM675091>) 
+}
+GROUP BY ?entity
+ORDER BY ?entity
+
 ```
