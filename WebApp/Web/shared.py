@@ -123,6 +123,7 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
                 }}
                 GROUP BY ?entity
         """).format(category, nimp_id)
+
     return query
 
 
@@ -132,20 +133,19 @@ def nimp_gars(taxon_id):
             PREFIX NIMP: <http://example.org/NIMP/>
             PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
             
-            SELECT DISTINCT ?property ?object
-            WHERE {{ 
+            SELECT DISTINCT (?gar_obj as ?s) (GROUP_CONCAT(DISTINCT ?sp; separator=", ") AS ?property) (GROUP_CONCAT(DISTINCT ?oo; separator=", ") AS ?object)     
+            WHERE {{
                 {{
                     SELECT ?gar_obj WHERE {{
-                        ?gar_id biolink:in_taxon ?gar_obj.
-                        ?gar_obj biolink:iri ?biriiri.
-                        FILTER(CONTAINS(STR(?biriiri), {0}))
+                        ?gar_id biolink:in_taxon ?gar_obj. 
+                        FILTER(?gar_obj = <{0}>)
                     }}
                 }}
                 OPTIONAL {{
-                    ?gar_obj ?property ?object .
+                    ?gar_obj ?sp ?oo .
                 }}
-            }}
-    """).format(taxon_id)
+            }} GROUP BY ?gar_obj
+    """).format(taxon_id.lower().strip())
     return query
 
 
@@ -204,4 +204,17 @@ def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
                                                               data["property"]["value"].split(',')],
                                                          "object": [item.strip() for item in
                                                                     data["object"]["value"].split(',')]}})
+    return data_to_display
+
+
+def format_gars_data_for_kb_single(gars_data, fetch_knowledge_base):
+    data_to_display = []
+    for in_taxon in gars_data:
+        if fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
+            for data in fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
+                data_to_display.append({data["s"]["value"]: {"property":
+                                                                 [item.strip() for item in
+                                                                  data["property"]["value"].split(',')],
+                                                             "object": [item.strip() for item in
+                                                                        data["object"]["value"].split(',')]}})
     return data_to_display
