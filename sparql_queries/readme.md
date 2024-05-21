@@ -349,3 +349,42 @@ WHERE {
     }
 }
 ```
+- ## NIMP-->ANSRS
+- Group results by ID, i.e., subject
+```sparql
+
+PREFIX ansrs: <https://w3id.org/my-org/ansrs-schema/>
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+SELECT DISTINCT ?s (GROUP_CONCAT(DISTINCT ?property; separator=", ") AS ?property) (GROUP_CONCAT(DISTINCT ?object; separator=", ") AS ?object) 
+WHERE { 
+    {
+        SELECT ?s ?o WHERE {
+           ?s ansrs:has_parent_parcellation_term ?o.  
+    		FILTER(CONTAINS(STR(?o), "MBA:1065"))
+        }
+    }
+    OPTIONAL {
+        ?s ?property ?object .
+    }
+} GROUP BY ?s
+ 
+```
+- Fetch all results
+```sparql
+
+PREFIX ansrs: <https://w3id.org/my-org/ansrs-schema/>
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+SELECT DISTINCT *
+WHERE { 
+    {
+        SELECT ?s ?o WHERE {
+           ?s ansrs:has_parent_parcellation_term ?o.  
+    		FILTER(CONTAINS(STR(?o), "MBA:1065"))
+        }
+    }
+    OPTIONAL {
+        ?s ?property ?object .
+    }
+}  
+ 
+```
