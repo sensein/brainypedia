@@ -325,7 +325,27 @@ WHERE {
   
   FILTER(?entity = <http://example.org/NIMP/LP-BIDMJM675091>) 
 }
-GROUP BY ?entity
-ORDER BY ?entity
+GROUP BY ?entity 
 
+```
+
+- ## Connect to GARS, i.e., NIMP-->GARS
+```sparql
+PREFIX biolink: <https://w3id.org/biolink/vocab/>
+PREFIX NIMP: <http://example.org/NIMP/>
+PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+
+SELECT DISTINCT (?gar_obj as ?gars_id) ?sp ?po ?oo
+WHERE { 
+    {
+        SELECT ?gar_obj WHERE {
+            ?gar_id biolink:in_taxon ?gar_obj.
+            ?gar_obj biolink:iri ?biriiri.
+            FILTER(CONTAINS(STR(?biriiri), "NCBITaxon_9544"))
+        }
+    }
+    OPTIONAL {
+        ?gar_obj ?sp ?oo .
+    }
+}
 ```
