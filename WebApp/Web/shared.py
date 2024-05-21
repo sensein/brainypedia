@@ -95,44 +95,30 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
     """Query to fetch DONER and Tissue sample in relation to NIMP based on biolink:category value
     """
     query =  textwrap.dedent(""" 
-              PREFIX biolink: <https://w3id.org/biolink/vocab/>
+             PREFIX biolink: <https://w3id.org/biolink/vocab/>
                 PREFIX prov: <http://www.w3.org/ns/prov#>
                 PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
-                
                 PREFIX NIMP: <http://example.org/NIMP/>
-                SELECT DISTINCT ?entity ?target ?targetType
-                WHERE {{
-                  {{
-                    SELECT ?entity ?target ?targetType (COUNT(?mid) AS ?hopCount)
-                    WHERE {{
-                      ?entity biolink:category <{0}>.
-                      ?entity (prov:wasDerivedFrom)+ ?mid.
-                      ?mid prov:wasDerivedFrom ?target.
-                      ?target biolink:category ?targetType.
-                      FILTER(?targetType IN (bican:Donor, bican:TissueSample)) 
-                    }}
-                    GROUP BY ?entity ?target ?targetType
-                  }}
                 
+                SELECT DISTINCT ?entity  (GROUP_CONCAT(DISTINCT ?species_value_for_taxon_match; separator=", ") AS ?species_value_match_in_gars) (GROUP_CONCAT(DISTINCT ?structure_value_for_tissue_sample; separator=", ") AS ?structure_value_match_in_ansrs)
+                WHERE {{
                   ?entity biolink:category <{0}>.
                   ?entity (prov:wasDerivedFrom)+ ?intermediate.
                   ?intermediate (prov:wasDerivedFrom)+ ?target.
                   ?target biolink:category ?targetType.
-                  FILTER(?targetType IN (bican:Donor, bican:TissueSample))
-                  
+                  FILTER(?targetType IN (bican:Donor, bican:TissueSample))  
                 
                   OPTIONAL {{
                     ?target bican:species ?species_value_for_taxon_match.
                     FILTER(?targetType = bican:Donor)
                   }}
-                
                   OPTIONAL {{
                     ?target bican:structure ?structure_value_for_tissue_sample.
                   }}
-                  FILTER(?entity = <{1}>)  
+                  
+                  FILTER(?entity = <{1}>) 
                 }}
-                ORDER BY ?entity ?hopCount
-
+                GROUP BY ?entity
         """).format(category, nimp_id)
     return query
 
