@@ -45,6 +45,12 @@ def format_sentence(text):
     formatted_text = text.replace('_', ' ').capitalize()
     return formatted_text
 
+def get_category_value(data):
+    for property in data:
+        if 'property' in property and property['property']== 'https://w3id.org/biolink/vocab/category':
+            return property['value']
+    return None
+
 
 def get_filter_uirs_label(kbobj):
     label_list = []
@@ -85,12 +91,56 @@ def extract_data_either_s_p_o_match(param):
     ).format(param)
     return query
 
+def extract_data_doner_tissuesample_match_query(category, nimp_id):
+    """Query to fetch DONER and Tissue sample in relation to NIMP based on biolink:category value
+    """
+    query =  textwrap.dedent(""" 
+              PREFIX biolink: <https://w3id.org/biolink/vocab/>
+                PREFIX prov: <http://www.w3.org/ns/prov#>
+                PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+                
+                PREFIX NIMP: <http://example.org/NIMP/>
+                SELECT DISTINCT ?entity ?target ?targetType
+                WHERE {{
+                  {{
+                    SELECT ?entity ?target ?targetType (COUNT(?mid) AS ?hopCount)
+                    WHERE {{
+                      ?entity biolink:category <{0}>.
+                      ?entity (prov:wasDerivedFrom)+ ?mid.
+                      ?mid prov:wasDerivedFrom ?target.
+                      ?target biolink:category ?targetType.
+                      FILTER(?targetType IN (bican:Donor, bican:TissueSample)) 
+                    }}
+                    GROUP BY ?entity ?target ?targetType
+                  }}
+                
+                  ?entity biolink:category <{0}>.
+                  ?entity (prov:wasDerivedFrom)+ ?intermediate.
+                  ?intermediate (prov:wasDerivedFrom)+ ?target.
+                  ?target biolink:category ?targetType.
+                  FILTER(?targetType IN (bican:Donor, bican:TissueSample))
+                  
+                
+                  OPTIONAL {{
+                    ?target bican:species ?species_value_for_taxon_match.
+                    FILTER(?targetType = bican:Donor)
+                  }}
+                
+                  OPTIONAL {{
+                    ?target bican:structure ?structure_value_for_tissue_sample.
+                  }}
+                  FILTER(?entity = <{1}>)  
+                }}
+                ORDER BY ?entity ?hopCount
+
+        """).format(category, nimp_id)
+    return query
+
 def group_dict(list_of_dict):
     grouped_data = defaultdict(list)
     for item in list_of_dict:
         grouped_data[item['property']].append(item['value'])
 
-    # Creating a list of dictionaries with the grouped data, ensuring lists are only used when needed
     result = []
     for key, values in grouped_data.items():
         if len(values) > 1:
@@ -103,13 +153,10 @@ def group_dict(list_of_dict):
 
 def format_data_for_kb_single(fetched_data):
     data_to_display = []
-
-
     for data in fetched_data:
         if 'object' in data and data['object'] is not None:
             data_to_display.append({"property": data['predicate']['value'],
                                     "value":data['object']['value']}
                                    )
     grouped_data  = group_dict(data_to_display)
-    print(grouped_data)
     return grouped_data
