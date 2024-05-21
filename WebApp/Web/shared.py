@@ -22,6 +22,7 @@ import json
 import textwrap
 from collections import defaultdict
 
+
 def extract_uri_data(url):
     parsed_url = urlparse(url)
     if parsed_url.fragment:
@@ -45,9 +46,10 @@ def format_sentence(text):
     formatted_text = text.replace('_', ' ').capitalize()
     return formatted_text
 
+
 def get_category_value(data):
     for property in data:
-        if 'property' in property and property['property']== 'https://w3id.org/biolink/vocab/category':
+        if 'property' in property and property['property'] == 'https://w3id.org/biolink/vocab/category':
             return property['value']
     return None
 
@@ -91,10 +93,11 @@ def extract_data_either_s_p_o_match(param):
     ).format(param)
     return query
 
+
 def extract_data_doner_tissuesample_match_query(category, nimp_id):
     """Query to fetch DONER and Tissue sample in relation to NIMP based on biolink:category value
     """
-    query =  textwrap.dedent(""" 
+    query = textwrap.dedent(""" 
              PREFIX biolink: <https://w3id.org/biolink/vocab/>
                 PREFIX prov: <http://www.w3.org/ns/prov#>
                 PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
@@ -122,6 +125,7 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
         """).format(category, nimp_id)
     return query
 
+
 def nimp_gars(taxon_id):
     query = textwrap.dedent("""
             PREFIX biolink: <https://w3id.org/biolink/vocab/>
@@ -144,6 +148,7 @@ def nimp_gars(taxon_id):
     """).format(taxon_id)
     return query
 
+
 def nimp_ansrs(structure):
     query = textwrap.dedent("""
         PREFIX ansrs: <https://w3id.org/my-org/ansrs-schema/>
@@ -163,6 +168,7 @@ def nimp_ansrs(structure):
          """).format(structure)
     return query
 
+
 def group_dict(list_of_dict):
     grouped_data = defaultdict(list)
     for item in list_of_dict:
@@ -177,12 +183,25 @@ def group_dict(list_of_dict):
 
     return result
 
+
 def format_data_for_kb_single(fetched_data):
     data_to_display = []
     for data in fetched_data:
         if 'object' in data and data['object'] is not None:
             data_to_display.append({"property": data['predicate']['value'],
-                                    "value":data['object']['value']}
+                                    "value": data['object']['value']}
                                    )
-    grouped_data  = group_dict(data_to_display)
+    grouped_data = group_dict(data_to_display)
     return grouped_data
+
+
+def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
+    data_to_display = []
+    for structure in ansrs_data:
+        for data in fetch_knowledge_base(nimp_ansrs(structure))["message"]["results"]["bindings"]:
+            data_to_display.append({data["s"]["value"]: {"property":
+                                                             [item.strip() for item in
+                                                              data["property"]["value"].split(',')],
+                                                         "object": [item.strip() for item in
+                                                                    data["object"]["value"].split(',')]}})
+    return data_to_display
