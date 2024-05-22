@@ -98,31 +98,31 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
     """Query to fetch DONER and Tissue sample in relation to NIMP based on biolink:category value
     """
     query = textwrap.dedent(""" 
-             PREFIX biolink: <https://w3id.org/biolink/vocab/>
-                PREFIX prov: <http://www.w3.org/ns/prov#>
-                PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
-                PREFIX NIMP: <http://example.org/NIMP/>
-                
-                SELECT DISTINCT ?entity  (GROUP_CONCAT(DISTINCT ?species_value_for_taxon_match; separator=", ") AS ?species_value_match_in_gars) (GROUP_CONCAT(DISTINCT ?structure_value_for_tissue_sample; separator=", ") AS ?structure_value_match_in_ansrs)
-                WHERE {{
-                  ?entity biolink:category <{0}>.
-                  ?entity (prov:wasDerivedFrom)+ ?intermediate.
-                  ?intermediate (prov:wasDerivedFrom)+ ?target.
-                  ?target biolink:category ?targetType.
-                  FILTER(?targetType IN (bican:Donor, bican:TissueSample))  
-                
-                  OPTIONAL {{
-                    ?target bican:species ?species_value_for_taxon_match.
-                    FILTER(?targetType = bican:Donor)
-                  }}
-                  OPTIONAL {{
-                    ?target bican:structure ?structure_value_for_tissue_sample.
-                  }}
-                  
-                  FILTER(?entity = <{1}>) 
-                }}
-                GROUP BY ?entity
-        """).format(category, nimp_id)
+        PREFIX biolink: <https://w3id.org/biolink/vocab/>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
+        PREFIX NIMP: <http://example.org/NIMP/>
+        
+        SELECT DISTINCT ?entity (GROUP_CONCAT(DISTINCT ?targetType; separator=", ") AS ?tissuedonertype) 
+            (GROUP_CONCAT(DISTINCT ?species_value_for_taxon_match; separator=", ") AS ?species_value_match_in_gars) 
+            (GROUP_CONCAT(DISTINCT ?structure_value_for_tissue_sample; separator=", ") AS ?structure_value_match_in_ansrs) 
+            (GROUP_CONCAT(DISTINCT ?target; separator=", ") AS ?targets)
+            WHERE {{
+              ?entity biolink:category <{0}>.
+              ?entity (prov:wasDerivedFrom)+ ?intermediate.
+              ?intermediate (prov:wasDerivedFrom)+ ?target.
+              ?target biolink:category ?targetType.
+              FILTER(?targetType IN (bican:Donor, bican:TissueSample))  
+              OPTIONAL {{
+                ?target bican:species ?species_value_for_taxon_match.
+                FILTER(?targetType = bican:Donor)
+              }}
+              OPTIONAL {{
+                ?target bican:structure ?structure_value_for_tissue_sample.
+              }}  
+              FILTER(?entity = <{1}>) 
+            }}
+        GROUP BY ?entity ?targetType""").format(category, nimp_id)
 
     return query
 
@@ -218,3 +218,10 @@ def format_gars_data_for_kb_single(gars_data, fetch_knowledge_base):
                                                              "object": [item.strip() for item in
                                                                         data["object"]["value"].split(',')]}})
     return data_to_display
+
+
+def donor_tissues_data_for_kb_single(tissue_doner_data):
+    donor_tissue = {}
+    for items in tissue_doner_data:
+        donor_tissue[items["tissuedonertype"]["value"].lower().split("/")[-1]] = items["targets"]["value"]
+    return donor_tissue
