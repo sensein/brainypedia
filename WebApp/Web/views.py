@@ -1,9 +1,14 @@
 from django.shortcuts import render
 from .models import KnowledgeBaseViewerModel, QueryEndpoint
 import requests
-import json
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .shared import get_filter_uirs_label
-from .shared import extract_data_either_s_p_o_match, format_data_for_kb_single
+from .shared import (extract_data_either_s_p_o_match, format_data_for_kb_single,
+                     get_category_value, extract_data_doner_tissuesample_match_query,
+                     format_ansrs_data_for_kb_single,
+                     format_gars_data_for_kb_single,
+                     donor_tissues_data_for_kb_single
+                     )
 
 
 def index(request):
@@ -26,7 +31,7 @@ def get_knowledge_base(kbobj):
     fetched_data = response_data["message"]["results"]["bindings"]
 
     if fetched_data:
-        return  {
+        return {
             "knowledge_base": kbobj,
             "fetched_data": fetched_data,
             "processed_label": labels["processed_label"],
@@ -36,6 +41,8 @@ def get_knowledge_base(kbobj):
         return {
             "knowledge_base": False
         }
+
+
 def knowledge_base(request):
     kbobj = KnowledgeBaseViewerModel.objects.all().filter(status_active=True, default_kb=True)
     other_items = KnowledgeBaseViewerModel.objects.all().filter(status_active=True).order_by("-default_kb")
@@ -54,19 +61,38 @@ def knowledge_base_single(request, id):
     label = id
     formtted_data = format_data_for_kb_single(fetched_data)
 
+    str_cat = get_category_value(formtted_data)
+    tissue_sample_doner = fetch_knowledge_base(extract_data_doner_tissuesample_match_query(str_cat, param))
+    tissue_donor_data = tissue_sample_doner["message"]["results"]["bindings"]
+
+    species_value_match_in_gars = [item.strip() for item in
+                                   tissue_donor_data[0]["species_value_match_in_gars"]["value"].split(',')]
+    matched_nimp_gars_data = format_gars_data_for_kb_single(species_value_match_in_gars, fetch_knowledge_base)
+
+    matched_donor_tissue_details_dict = donor_tissues_data_for_kb_single(tissue_donor_data)
+
+
+    structure_value_match_in_ansrs = [item.strip() for item in
+                                      tissue_donor_data[0]["structure_value_match_in_ansrs"]["value"].split(',')]
+    matched_nimp_ansrs_data = format_ansrs_data_for_kb_single(structure_value_match_in_ansrs, fetch_knowledge_base)
+
     context = {
         "uri_param": param,
         "label": label,
-        "fetched_data":formtted_data
+        "fetched_data": formtted_data,
+        "category": get_category_value(formtted_data),
+        "tissue_sample_doner": matched_donor_tissue_details_dict,
+        "matched_nimp_gars_data": matched_nimp_gars_data,
+        "matched_nimp_ansrs_data": matched_nimp_ansrs_data
+
     }
     return render(request, "pages/knowledge-base-single.html", context=context)
+
 
 def knowledge_base_slug(request, slug):
     kbobj = KnowledgeBaseViewerModel.objects.all().filter(slug=slug)
     other_items = KnowledgeBaseViewerModel.objects.all().filter(status_active=True).order_by("-default_kb")
     context = get_knowledge_base(kbobj=kbobj)
     context["menu_items"] = other_items
-
     return render(request,
                   "pages/knowledge-base.html", context=context)
-
