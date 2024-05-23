@@ -64,29 +64,32 @@
                     <p><b>List of connected sources:</b></p>
                     <table class="table table-hover">
 
+
                         <tbody>
                         {% for data in fetched_data %}
                             {% if "wasDerivedFrom" in data.property %}
-
-
-                                {% if data.value|is_list %}
-                                    {% for s_value in data.value %}
-                                        {% if s_value|is_url %}
-                                            <tr>
-                                                <td>
-                                                    <a href="{% url 'knowledge_base_single' s_value|extract_last_two_part %}?uri={{ s_value }}"
-                                                       title="Tooltip">{{ s_value|extract_last_two_part }}</a>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-primary">View Details</button>
-                                                </td>
-                                            </tr>
-                                        {% endif %}
+                                {% if not data.value.items %}
+                                    <p style="color: red">No sources available.</p>
+                                {% else %}
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Source Type</th>
+                                    </tr>
+                                    {% for s_key, s_value in data.value.items %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'knowledge_base_single' s_key|extract_last_two_part %}?uri={{ s_key }}"
+                                                   title="Click to view more details">{{ s_key|extract_last_two_part }}</a>
+                                            </td>
+                                            <td>
+                                                {{ s_value|extract_last_part }}
+                                            </td>
+                                        </tr>
                                     {% endfor %}
                                 {% endif %}
-                                </tr>
                             {% endif %}
                         {% endfor %}
+
                         </tbody>
                     </table>
                     </p>
@@ -127,31 +130,23 @@
                         piece of tissue will be used in dissociation and has an region of interest polygon
                         (ROI) associated with it.</p>
 
-
-                    <p class="d-inline-flex gap-1">
-                        <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseTissueSample" role="button"
-                           aria-expanded="false" aria-controls="collapseTissueSample">
-                            Link with href
-                        </a>
-                    </p>
-                    <div class="collapse" id="collapseTissueSample">
-                        <div class="card card-body">
-                            <table class="table table-hover">
-                                <tbody>
-                                {% for data in tissuesample_info %}
-                                    <tr>
-                                        <td>
-                                            <a href="#">{{ data|extract_last_two_part }}</a>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-primary">View Details</button>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="card card-body">
+                        <table class="table table-hover">
+                            <tbody>
+                            {% for data in tissuesample_info %}
+                                <tr>
+                                    <td>
+                                        <a href="#">{{ data|extract_last_two_part }}</a>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary">View Details</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+
                 </div>
             </div>
 
