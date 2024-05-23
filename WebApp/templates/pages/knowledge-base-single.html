@@ -5,41 +5,158 @@
     .left-sidebar-menu{
     margin:5px;
     }
+    .card{
+    width: 100% !important;
+    }
 {% endblock inpagecss %}
+{% block title %}
+    Knowledge Base - {{ label }}
+{% endblock title %}
 {% block bodycontent %}
     <div class="container">
-        <div class="card" style="width: 18rem;">
+        <div class="card">
+            <h5 class="card-header">{{ label }}</h5>
             <div class="card-body">
-                <h5 class="card-title">{{ label }}</h5>
-                {% for data in fetched_data %}
-                    {% if "label" in data.property %}
-                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ data.property|extract_last_part|capitalize_first_letter }}: {{ data.value }}</h6>
-                    {% else %}
-                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ data.property|extract_last_part|capitalize_first_letter }}:</h6>
-                        {% if data.value|is_list %}
-                            {% for s_value in data.value %}
-                                {% if s_value|is_url %}
-                                <a
-                                                href="{% url 'knowledge_base_single' s_value|extract_last_two_part %}?uri={{ s_value }}">{{ s_value|extract_last_two_part }}</a>
-                                {% else %}
-                                     <i>{{ s_value }}</i>
-                                {% endif %}
-                            {% endfor %}
+                <h5 class="card-title main-title">Summary</h5>
+                <table class="table table-hover">
+                    <tbody>
+
+                    <tr>
+                        <th>
+                            Local name
+                        </th>
+                        <td>
+                            {{ local_name }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Category
+                        </th>
+                        <td>
+                            {{ category|extract_last_part }}
+                        </td>
+                    </tr>
+                    {% for data in fetched_data %}
+                        {% if "wasDerivedFrom" in data.property or "category" in data.property %}
                         {% else %}
-                            {% if data.value|is_url %}
-                                 <a
-                                                href="{% url 'knowledge_base_single' data.value|extract_last_two_part %}?uri={{ data.value }}">{{ data.value|extract_last_two_part }}</a>
-                                {% else %}
-                                     <i>{{ data.value }}</i>
-                                {% endif %}
+                            <tr>
+                                <th>
+                                    {{ data.property|extract_last_part|capitalize_first_letter }}
+                                </th>
+                                <td>
+                                    {{ data.value }}
+                                </td>
+                            </tr>
                         {% endif %}
-
-                    {% endif %}
-
-                {% endfor %}
-
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            <div class="card">
+                <h5 class="card-header derived-from">Sources</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">
+                        A derivation is a transformation of an entity into another, an update of an entity resulting in
+                        a new one, or the construction of a new entity based on a pre-existing entity.
+
+                    <p><b>List of connected sources:</b></p>
+                    <table class="table table-hover">
+
+                        <tbody>
+                        {% for data in fetched_data %}
+                            {% if "wasDerivedFrom" in data.property %}
+
+
+                                {% if data.value|is_list %}
+                                    {% for s_value in data.value %}
+                                        {% if s_value|is_url %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{% url 'knowledge_base_single' s_value|extract_last_two_part %}?uri={{ s_value }}"
+                                                       title="Tooltip">{{ s_value|extract_last_two_part }}</a>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-primary">View Details</button>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <h5 class="card-header">Donor</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">A person or organism that is the source of a biological sample for
+                        scientific study. Many biological samples are generated from a single donor.</p>
+
+                    <p><b>List of connected doners:</b></p>
+                    <table class="table table-hover">
+                        <tbody>
+                        {% for data in donor_info %}
+                            <tr>
+                                <td>
+                                    <a href="#">{{ data|extract_last_two_part }}</a>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary">View Details</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h5 class="card-header">Tissue Sample</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">The final intact piece of tissue before cell or nuclei prep. This
+                        piece of tissue will be used in dissociation and has an region of interest polygon
+                        (ROI) associated with it.</p>
+
+
+                    <p class="d-inline-flex gap-1">
+                        <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseTissueSample" role="button"
+                           aria-expanded="false" aria-controls="collapseTissueSample">
+                            Link with href
+                        </a>
+                    </p>
+                    <div class="collapse" id="collapseTissueSample">
+                        <div class="card card-body">
+                            <table class="table table-hover">
+                                <tbody>
+                                {% for data in tissuesample_info %}
+                                    <tr>
+                                        <td>
+                                            <a href="#">{{ data|extract_last_two_part }}</a>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-primary">View Details</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
 {% endblock bodycontent %}
+
