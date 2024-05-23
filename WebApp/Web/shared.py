@@ -46,11 +46,13 @@ def format_sentence(text):
     formatted_text = text.replace('_', ' ').capitalize()
     return formatted_text
 
-
 def get_category_value(data):
     for property in data:
         if 'property' in property and property['property'] == 'https://w3id.org/biolink/vocab/category':
-            return property['value']
+            if type(property['value'])==list:
+                return property['value'][0]
+            else:
+                return property['value']
     return None
 
 
@@ -80,26 +82,26 @@ def get_filter_uirs_label(kbobj):
 def extract_data_either_s_p_o_match(param):
     query = textwrap.dedent(
         """
-        PREFIX NIMP: <http://example.org/NIMP/>
-        PREFIX prov: <http://www.w3.org/ns/prov#>
-        PREFIX biolink: <https://w3id.org/biolink/vocab/>
-        
-        SELECT DISTINCT ?subject ?predicate ?object ?category_type
-          WHERE {{
-            {{ BIND(<{0}> AS ?id)
-              ?subject ?predicate ?id . }}
-            UNION
-            {{ BIND(<{0}> AS ?id)
-              ?id ?predicate ?object . }}
-            UNION
-            {{ BIND(<{0}> AS ?id)
-              ?subject ?id ?object . }}
-              
-              OPTIONAL {{
-            ?id prov:wasDerivedFrom ?derivedFrom .
-            ?derivedFrom biolink:category ?category_type .
-          }}
-          }}"""
+            PREFIX NIMP: <http://example.org/NIMP/>
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            PREFIX biolink: <https://w3id.org/biolink/vocab/>
+            
+            SELECT DISTINCT ?subject ?predicate ?object ?category_type
+              WHERE {{
+                {{ BIND(<{0}> AS ?id)
+                  ?subject ?predicate ?id . }}
+                UNION
+                {{ BIND(<{0}> AS ?id)
+                  ?id ?predicate ?object . }}
+                UNION
+                {{ BIND(<{0}> AS ?id)
+                  ?subject ?id ?object . }}
+                  
+                OPTIONAL {{
+                    ?id prov:wasDerivedFrom ?derivedFrom .
+                    ?derivedFrom biolink:category ?category_type .
+                }}
+              }}"""
     ).format(param)
     return query
 
@@ -133,7 +135,6 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
               FILTER(?entity = <{1}>) 
             }}
         GROUP BY ?entity ?targetType""").format(category, nimp_id)
-    print(query)
     return query
 
 
@@ -179,17 +180,24 @@ def nimp_ansrs(structure):
 
 
 def group_dict(list_of_dict):
-    grouped_data = defaultdict(list)
+    grouped_data = defaultdict(lambda: {'value': [], 'category_type': []})
+
     for item in list_of_dict:
-        grouped_data[item['property']].append(item['value'])
+        grouped_data[item['property']]['value'].append(item['value'])
+        grouped_data[item['property']]['category_type'].append(item['category_type'])
 
     result = []
     for key, values in grouped_data.items():
-        if len(values) > 1:
-            result.append({'property': key, 'value': values})
+        if len(values['value']) > 1:
+            result.append({
+                'property': key,
+                'value': dict(zip(values['value'], values['category_type'])),
+            })
         else:
-            result.append({'property': key, 'value': values[0]})  # Only take the single value out of the list
-
+            result.append({
+                'property': key,
+                'value': values['value'][0],
+            })
     return result
 
 
@@ -202,7 +210,8 @@ def format_data_for_kb_single(fetched_data):
                 localname = data['object']['value']
             else:
                 data_to_display.append({"property": data['predicate']['value'],
-                                    "value": data['object']['value']}
+                                    "value": data['object']['value'],
+                                        "category_type": data["category_type"]["value"]}
                                    )
     grouped_data = group_dict(data_to_display)
     return {"localname": localname, "grouped_data": grouped_data}
