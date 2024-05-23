@@ -79,17 +79,27 @@ def get_filter_uirs_label(kbobj):
 
 def extract_data_either_s_p_o_match(param):
     query = textwrap.dedent(
-        """SELECT ?subject ?predicate ?object
-  WHERE {{
-    {{ BIND(<{0}> AS ?id)
-      ?subject ?predicate ?id . }}
-    UNION
-    {{ BIND(<{0}> AS ?id)
-      ?id ?predicate ?object . }}
-    UNION
-    {{ BIND(<{0}> AS ?id)
-      ?subject ?id ?object . }}
-  }}"""
+        """
+        PREFIX NIMP: <http://example.org/NIMP/>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        PREFIX biolink: <https://w3id.org/biolink/vocab/>
+        
+        SELECT DISTINCT ?subject ?predicate ?object ?category_type
+          WHERE {{
+            {{ BIND(<{0}> AS ?id)
+              ?subject ?predicate ?id . }}
+            UNION
+            {{ BIND(<{0}> AS ?id)
+              ?id ?predicate ?object . }}
+            UNION
+            {{ BIND(<{0}> AS ?id)
+              ?subject ?id ?object . }}
+              
+              OPTIONAL {{
+            ?id prov:wasDerivedFrom ?derivedFrom .
+            ?derivedFrom biolink:category ?category_type .
+          }}
+          }}"""
     ).format(param)
     return query
 
@@ -123,7 +133,7 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
               FILTER(?entity = <{1}>) 
             }}
         GROUP BY ?entity ?targetType""").format(category, nimp_id)
-
+    print(query)
     return query
 
 
@@ -132,7 +142,6 @@ def nimp_gars(taxon_id):
             PREFIX biolink: <https://w3id.org/biolink/vocab/>
             PREFIX NIMP: <http://example.org/NIMP/>
             PREFIX bican: <https://identifiers.org/brain-bican/vocab/>
-            
             SELECT DISTINCT (?gar_obj as ?s) (GROUP_CONCAT(DISTINCT ?sp; separator=", ") AS ?property) (GROUP_CONCAT(DISTINCT ?oo; separator=", ") AS ?object)     
             WHERE {{
                 {{
@@ -186,13 +195,17 @@ def group_dict(list_of_dict):
 
 def format_data_for_kb_single(fetched_data):
     data_to_display = []
+    localname=None
     for data in fetched_data:
         if 'object' in data and data['object'] is not None:
-            data_to_display.append({"property": data['predicate']['value'],
+            if data['predicate']['value'] == "http://www.w3.org/2000/01/rdf-schema#label":
+                localname = data['object']['value']
+            else:
+                data_to_display.append({"property": data['predicate']['value'],
                                     "value": data['object']['value']}
                                    )
     grouped_data = group_dict(data_to_display)
-    return grouped_data
+    return {"localname": localname, "grouped_data": grouped_data}
 
 
 def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
@@ -224,4 +237,7 @@ def donor_tissues_data_for_kb_single(tissue_doner_data):
     donor_tissue = {}
     for items in tissue_doner_data:
         donor_tissue[items["tissuedonertype"]["value"].lower().split("/")[-1]] = items["targets"]["value"]
+
+    donor_tissue["donor"] = donor_tissue["donor"].split(",")
+    donor_tissue["tissuesample"] = donor_tissue["tissuesample"].split(",")
     return donor_tissue
