@@ -220,17 +220,30 @@ def get_donor_data_by_id(donor_id):
                 FILTER(?doner_id = <{0}>)
             }}
     """).format(donor_id)
-    print(query)
+    return query
+
+def get_tissuesample_data_by_id(tissue_id):
+    query = textwrap.dedent("""
+            select  DISTINCT * where {{
+    ?tissue_id ?property ?object .
+    FILTER(?tissue_id = <{0}>)
+}}  
+    """).format(tissue_id)
     return query
 
 def doner_tissue_to_js(data):
     js_data = []
     for item in data:
-        if not "donor" in item["object"]["value"].lower():
+        if not ("donor" in item["object"]["value"].lower() or  "tissuesample" in item["object"]["value"].lower()):
             key = split_and_extract_last(item["property"]["value"])
             value = item["object"]["value"]
             if key == "Label":
                 key = "Local Name"
+            elif key == "Was Derived From":
+                key = "Source"
+                value = extract_uri_data(item["object"]["value"])
+
+
             js_data.append({key:value})
     return js_data
 

@@ -114,7 +114,7 @@
                                            id="donermodal{{ forloop.counter }}_data">
                                     <button type="button" class="btn btn-primary donermodalbutton"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#donorModal" id="donermodal{{ forloop.counter }}">
+                                            data-bs-target="#donorTissueModal" id="donermodal{{ forloop.counter }}">
                                         View Donor Details
                                     </button>
                                 </td>
@@ -139,10 +139,16 @@
                             {% for data in tissuesample_info %}
                                 <tr>
                                     <td>
-                                        <a href="#">{{ data|extract_last_two_part }}</a>
+                                        <p id="tissuemodal{{ forloop.counter }}_datacls">{{ data|extract_last_two_part }}</p>
                                     </td>
                                     <td>
-                                        <button class="btn btn-primary">View Details</button>
+                                        <input type="hidden" value="{{ data }}" class="tissuemodaldata" readonly
+                                           id="tissuemodal{{ forloop.counter }}_data">
+                                        <button type="button" class="btn btn-primary tissuemodalbutton"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#donorTissueModal" id="tissuemodal{{ forloop.counter }}">
+                                        View Tissue Sample Details
+                                    </button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -173,12 +179,12 @@
 
 
         <!-- Modal -->
-        <div class="modal fade" id="donorModal" tabindex="-1" aria-labelledby="donorModalLabel"
+        <div class="modal fade" id="donorTissueModal" tabindex="-1" aria-labelledby="donorTissueModalLabel"
              aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="donorModalLabel">Donor</h1>
+                        <h1 class="modal-title fs-5" id="donorTissueModalLabel">Donor</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -195,6 +201,7 @@
     <script>
         $(document).ready(function () {
             initializeDonerModalButton();
+            initializeTissueModalButton();
         });
 
         function initializeDonerModalButton() {
@@ -206,6 +213,21 @@
                 var donorId = $("#" + dataID).val().trim();
                 var dataparm = {'doner_id': donorId};
                 var uri_to_call = "{% url 'get_doner_data_ajax' %}";
+
+                fetchAndDisplayData(uri_to_call, dataparm);
+            });
+        }
+
+        function initializeTissueModalButton() {
+            $(".tissuemodalbutton").click(function (event) {
+                event.preventDefault();
+                var elementId = $(this).attr("id");
+                console.log(elementId);
+                setModalTitle("Tissue Sample", elementId);
+                var dataID = elementId + "_data";
+                var donorId = $("#" + dataID).val().trim();
+                var dataparm = {'tissue_id': donorId};
+                var uri_to_call = "{% url 'get_tissuesample_data_ajax' %}";
 
                 fetchAndDisplayData(uri_to_call, dataparm);
             });

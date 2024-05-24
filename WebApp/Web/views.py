@@ -10,7 +10,8 @@ from .shared import (extract_data_either_s_p_o_match, format_data_for_kb_single,
                      format_gars_data_for_kb_single,
                      donor_tissues_data_for_kb_single,
                      get_donor_data_by_id,
-                     doner_tissue_to_js
+                     doner_tissue_to_js,
+                     get_tissuesample_data_by_id
                      )
 
 
@@ -102,10 +103,24 @@ def get_doner_data_ajax(request):
     try:
         retrieved_doner_data = fetch_knowledge_base(get_donor_data_by_id(donor_id))["message"]["results"]["bindings"]
     except TypeError as e:
-         print(e)
+        print(e)
 
     data = {
         'data': doner_tissue_to_js(retrieved_doner_data)
+    }
+    return JsonResponse(data)
+
+
+def get_tissuesample_data_ajax(request):
+    tissue_id = request.GET.get("tissue_id")
+    try:
+        retrieved_tissue_data = fetch_knowledge_base(get_tissuesample_data_by_id(tissue_id))["message"]["results"][
+            "bindings"]
+    except TypeError as e:
+        print(e)
+
+    data = {
+        'data': doner_tissue_to_js(retrieved_tissue_data)
     }
     return JsonResponse(data)
 
