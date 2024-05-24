@@ -6,9 +6,16 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8055:8000"
     environment:
       - ENVIRONMENT=debug
     restart: on-failure
     volumes:
       - ./:/app
+
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
