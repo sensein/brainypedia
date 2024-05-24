@@ -22,9 +22,9 @@ class KnowledgeBaseViewerModel(models.Model):
     default_kb = models.BooleanField(blank=False, default=False)
     display_column_first = models.CharField(max_length=150, blank=False,
                                             help_text="The column that will be displayed when the page loads.")
-    display_column_second = models.CharField(max_length=150, blank=False,
+    display_column_second = models.CharField(max_length=150, blank=True,
                                              help_text="The column that will be displayed when the page loads.")
-    display_column_third = models.CharField(max_length=150, blank=False,
+    display_column_third = models.CharField(max_length=150, blank=True,
                                             help_text="The column that will be displayed when the page loads.")
     display_column_fourth = models.CharField(max_length=150, blank=True,
                                              help_text="The column that will be displayed when the page loads.")

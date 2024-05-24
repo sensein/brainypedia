@@ -24,6 +24,8 @@ def fetch_knowledge_base(query_or_search_input, query_endpoint_type="get", endpo
                                                    endpoint_service_type=endpoint_service_type)
     payload = {"sparql_query": query_or_search_input}
     response = requests.get(endpoints[0].query_url, params=payload)
+    print("^"*100)
+    print(response.url)
     if response.status_code == 200:
         return response.json()
 
