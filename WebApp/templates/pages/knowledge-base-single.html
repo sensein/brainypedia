@@ -192,46 +192,62 @@
         </div>
     </div>
 
-    <script>
-        $(document).ready(function () {
-            $(".donermodalbutton").click(function (event) {
-                event.preventDefault();
-                var elementIdid = $(this).attr("id");
-                $(".modal-title").text("Donor | "+$("#" + elementIdid + "_datacls").text().trim());
-                console.log(elementIdid);
-                dataID = elementIdid + "_data";
-                console.log($("#" + elementIdid + "_datacls").text().trim());
-                console.log($("#" + dataID).val().trim());
-                $.ajax({
-                    url: '{% url 'get_doner_data_ajax' %}',
-                    data: {'doner_id': $("#" + dataID).val().trim()},
-                    type: 'GET',
-                    async: false,
-                    cache: false,
-                    dataType: 'json',
-                    success: function (jsonData) {
-                        console.log(jsonData["data"]);
-                        $('.modal-body').empty();
-                        var table = $('<table class="table table-hover"></table>').appendTo('.modal-body');
-                        var tbody = $('<tbody></tbody>').appendTo(table);
+<script>
+    $(document).ready(function () {
+        initializeDonerModalButton();
+    });
 
-                        $.each(jsonData["data"], function (key, value) {
-                            console.log(value[0], value[1]);
-                            $.each(value, function (label, item) {
-                                var row = $('<tr></tr>').appendTo(tbody);
-                                $('<td></td>').text(label).appendTo(row);
-                                $('<td></td>').text(item).appendTo(row);
+    function initializeDonerModalButton() {
+        $(".donermodalbutton").click(function (event) {
+            event.preventDefault();
+            var elementId = $(this).attr("id");
+            setModalTitle("Donor", elementId);
+            fetchAndDisplayDonorData(elementId);
+        });
+    }
 
+    function setModalTitle(title, elementId) {
+        var title =title+" | " + $("#" + elementId + "_datacls").text().trim();
+        $(".modal-title").text(title);
+        console.log(elementId);
+    }
 
-                            })
+    function fetchAndDisplayDonorData(elementId) {
+        var dataID = elementId + "_data";
+        var donorId = $("#" + dataID).val().trim();
+        console.log($("#" + elementId + "_datacls").text().trim());
+        console.log(donorId);
 
-                        });
+        $.ajax({
+            url: '{% url 'get_doner_data_ajax' %}',
+            data: {'doner_id': donorId},
+            type: 'GET',
+            async: false,
+            cache: false,
+            dataType: 'json',
+            success: function (jsonData) {
+                console.log(jsonData["data"]);
+                updateModalBody(jsonData["data"]);
+            }
+        });
+    }
 
-                    }
-                });
+    function updateModalBody(data) {
+        $('.modal-body').empty();
+        var table = $('<table class="table table-hover"></table>').appendTo('.modal-body');
+        var tbody = $('<tbody></tbody>').appendTo(table);
+
+        $.each(data, function (key, value) {
+            console.log(value[0], value[1]);
+            $.each(value, function (label, item) {
+                var row = $('<tr></tr>').appendTo(tbody);
+                $('<td></td>').text(label).appendTo(row);
+                $('<td></td>').text(item).appendTo(row);
             });
         });
-    </script>
+    }
+</script>
+
 
 {% endblock bodycontent %}
 
