@@ -162,6 +162,64 @@
             </div>
 
             <div class="card">
+                <h5 class="card-header">GARS</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text"> Genomic model.</p>
+
+                    <div class="card card-body">
+                        {% for ind_items in matched_nimp_gars_data %}
+                            {% for key, ind_value in ind_items.items %}
+                                <table class="table table-hover">
+                                    <tbody>
+                                    <tr>
+                                        <th>
+                                            {{ key|extract_last_part }}
+                                        </th>
+                                        <td>
+                                            <table class="table">
+                                                <tbody>
+
+                                                    {% for prop, obj in ind_value.property|zip_lists:ind_value.object %}
+
+                                                    <tr>
+                                                        <th>
+                                                             {% if prop|extract_last_part == "Label" %}
+                                                            Local Name
+                                                                 {% else %}
+                                                                 {{ prop|extract_last_part }}
+                                                            {% endif %}
+
+                                                        </th>
+                                                        <td>
+                                                             {% if prop == "https://w3id.org/biolink/vocab/iri" %}
+                                                            <a href="{{ obj }}" target="_blank">{{ obj }}</a>
+                                                                 {% else %}
+                                                                 {{ obj|extract_last_part}}
+                                                            {% endif %}
+
+                                                        </td>
+                                                    </tr>
+
+
+
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                            {% endfor %}
+
+
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+            <div class="card">
                 <h5 class="card-header">ANSRS</h5>
                 <div class="card-body">
                     <h5 class="card-title">Description</h5>
@@ -192,7 +250,7 @@
                                                                     {{ val }}<br/>
                                                                 {% endfor %}
                                                             {% else %}
-                                                                 {{ value }}
+                                                                {{ value }}
                                                             {% endif %}
 
                                                         </td>

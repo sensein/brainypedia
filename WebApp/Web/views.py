@@ -83,13 +83,6 @@ def knowledge_base_single(request, id):
 
     matched_nimp_ansrs_data = format_ansrs_data_for_kb_single(structure_value_match_in_ansrs, fetch_knowledge_base)
 
-    print("###"*100)
-    print(tissue_donor_data)
-    print("*NIMP GARS*"*100)
-    print(matched_nimp_ansrs_data)
-
-    print("###"*100)
-
     context = {
         "uri_param": param,
         "label": label,
