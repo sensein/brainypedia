@@ -1,13 +1,16 @@
 from django.shortcuts import render
 from .models import KnowledgeBaseViewerModel, QueryEndpoint
 import requests
+from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .shared import get_filter_uirs_label
 from .shared import (extract_data_either_s_p_o_match, format_data_for_kb_single,
                      get_category_value, extract_data_doner_tissuesample_match_query,
                      format_ansrs_data_for_kb_single,
                      format_gars_data_for_kb_single,
-                     donor_tissues_data_for_kb_single
+                     donor_tissues_data_for_kb_single,
+                     get_donor_data_by_id,
+                     doner_tissue_to_js
                      )
 
 
@@ -56,12 +59,16 @@ def knowledge_base(request):
 def knowledge_base_single(request, id):
     param = request.GET.get('uri')
     query = extract_data_either_s_p_o_match(param)
+
     response_data = fetch_knowledge_base(query)
     fetched_data = response_data["message"]["results"]["bindings"]
     label = id
-    formtted_data = format_data_for_kb_single(fetched_data)
+    formtted_data_all = format_data_for_kb_single(fetched_data)
+    formtted_data = formtted_data_all["grouped_data"]
+    local_name = formtted_data_all["localname"]
 
     str_cat = get_category_value(formtted_data)
+
     tissue_sample_doner = fetch_knowledge_base(extract_data_doner_tissuesample_match_query(str_cat, param))
     tissue_donor_data = tissue_sample_doner["message"]["results"]["bindings"]
 
@@ -71,7 +78,6 @@ def knowledge_base_single(request, id):
 
     matched_donor_tissue_details_dict = donor_tissues_data_for_kb_single(tissue_donor_data)
 
-
     structure_value_match_in_ansrs = [item.strip() for item in
                                       tissue_donor_data[0]["structure_value_match_in_ansrs"]["value"].split(',')]
     matched_nimp_ansrs_data = format_ansrs_data_for_kb_single(structure_value_match_in_ansrs, fetch_knowledge_base)
@@ -79,14 +85,29 @@ def knowledge_base_single(request, id):
     context = {
         "uri_param": param,
         "label": label,
+        "local_name": local_name,
         "fetched_data": formtted_data,
         "category": get_category_value(formtted_data),
-        "tissue_sample_doner": matched_donor_tissue_details_dict,
+        "donor_info": matched_donor_tissue_details_dict["donor"],
+        "tissuesample_info": matched_donor_tissue_details_dict["tissuesample"],
         "matched_nimp_gars_data": matched_nimp_gars_data,
         "matched_nimp_ansrs_data": matched_nimp_ansrs_data
 
     }
     return render(request, "pages/knowledge-base-single.html", context=context)
+
+
+def get_doner_data_ajax(request):
+    donor_id = request.GET.get("doner_id")
+    try:
+        retrieved_doner_data = fetch_knowledge_base(get_donor_data_by_id(donor_id))["message"]["results"]["bindings"]
+    except TypeError as e:
+         print(e)
+
+    data = {
+        'data': doner_tissue_to_js(retrieved_doner_data)
+    }
+    return JsonResponse(data)
 
 
 def knowledge_base_slug(request, slug):

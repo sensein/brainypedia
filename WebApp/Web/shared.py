@@ -19,10 +19,43 @@
 from urllib.parse import urlparse
 import json
 
+
 import textwrap
 from collections import defaultdict
 
 
+def _format_underscore_string(s):
+    if "_" in s:
+        words = s.split('_')
+        words = [word.capitalize() for word in words]
+        formatted_string = ' '.join(words)
+        return formatted_string
+    else:
+        return s
+
+def split_and_extract_last(value):
+    if '#' in value:
+        last_part = value.split('#')[-1]
+    else:
+        last_part = value.split('/')[-1]
+    last_part = format_text_with_space(_format_underscore_string(last_part))
+    return last_part
+
+def format_text_with_space(text):
+    # convert wasDerivedFrom to Was Derived From
+    words = []
+    start = 0
+
+    for i in range(1, len(text)):
+        if text[i].isupper():
+            words.append(text[start:i])
+            start = i
+
+    words.append(text[start:])
+    words[0] = words[0].capitalize()
+    formatted_text = " ".join(words)
+
+    return formatted_text
 def extract_uri_data(url):
     parsed_url = urlparse(url)
     if parsed_url.fragment:
@@ -135,6 +168,7 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
               FILTER(?entity = <{1}>) 
             }}
         GROUP BY ?entity ?targetType""").format(category, nimp_id)
+    print(query)
     return query
 
 
@@ -177,6 +211,28 @@ def nimp_ansrs(structure):
         }} GROUP BY ?s
          """).format(structure)
     return query
+
+
+def get_donor_data_by_id(donor_id):
+    query = textwrap.dedent("""
+            select DISTINCT * where {{
+                ?doner_id ?property ?object .
+                FILTER(?doner_id = <{0}>)
+            }}
+    """).format(donor_id)
+    print(query)
+    return query
+
+def doner_tissue_to_js(data):
+    js_data = []
+    for item in data:
+        if not "donor" in item["object"]["value"].lower():
+            key = split_and_extract_last(item["property"]["value"])
+            value = item["object"]["value"]
+            if key == "Label":
+                key = "Local Name"
+            js_data.append({key:value})
+    return js_data
 
 
 def group_dict(list_of_dict):
@@ -250,3 +306,8 @@ def donor_tissues_data_for_kb_single(tissue_doner_data):
     donor_tissue["donor"] = donor_tissue["donor"].split(",")
     donor_tissue["tissuesample"] = donor_tissue["tissuesample"].split(",")
     return donor_tissue
+
+def donor_tissue_modal(data):
+    print(data)
+
+

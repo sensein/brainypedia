@@ -6,6 +6,9 @@
     margin:5px;
     }
 {% endblock inpagecss %}
+{% block title %}
+    Knowledge Base
+{% endblock title %}
 {% block bodycontent %}
     {% if knowledge_base %}
         <div class="row align-items-start">
@@ -14,7 +17,9 @@
                     {% for item in menu_items %}
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{% url 'knowledge_base_slug' item.slug %}">{{ item.left_side_menu_title }}</a></li>
+                                <li class="breadcrumb-item"><a
+                                        href="{% url 'knowledge_base_slug' item.slug %}">{{ item.left_side_menu_title }}</a>
+                                </li>
                             </ol>
                         </nav>
                     {% endfor %}
@@ -25,7 +30,6 @@
                     <table class="table table-hover">
                         <thead class="thead-dark">
                         <tr>
-
                             <th scope="col">#</th>
                             {% for label in processed_label %}
                                 <th scope="col">{{ label | upper }}</th>
@@ -39,7 +43,12 @@
                                 {% for key, value in data.items %}
                                     {% if key == pre_processed_label %}
                                         <td class="{{ key }}"><a
-                                                href="{% url 'knowledge_base_single' value.value|extract_last_two_part %}?uri={{ value.value }}">{{ value.value|extract_last_two_part }}</a>
+                                                href="{% url 'knowledge_base_single' value.value|extract_last_two_part %}?uri={{ value.value }}">
+                                            {{ value.value|extract_last_two_part }}
+                                            {{ data.next.value.key }}
+                                            {{ data.next.value.value }}
+
+                                        </a>
                                         </td>
                                     {% else %}
                                         <td class="{{ key }}">{{ value.value }}</td>

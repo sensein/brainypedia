@@ -20,7 +20,6 @@
                 <h5 class="card-title main-title">Summary</h5>
                 <table class="table table-hover">
                     <tbody>
-
                     <tr>
                         <th>
                             Local name
@@ -63,8 +62,6 @@
 
                     <p><b>List of connected sources:</b></p>
                     <table class="table table-hover">
-
-
                         <tbody>
                         {% for data in fetched_data %}
                             {% if "wasDerivedFrom" in data.property %}
@@ -104,16 +101,22 @@
                     <p class="card-text">A person or organism that is the source of a biological sample for
                         scientific study. Many biological samples are generated from a single donor.</p>
 
-                    <p><b>List of connected doners:</b></p>
+                    <p><b>List of doners:</b></p>
                     <table class="table table-hover">
                         <tbody>
                         {% for data in donor_info %}
                             <tr>
                                 <td>
-                                    <a href="#">{{ data|extract_last_two_part }}</a>
+                                    <p id="donermodal{{ forloop.counter }}_datacls">{{ data|extract_last_two_part }}</p>
                                 </td>
                                 <td>
-                                    <button class="btn btn-primary">View Details</button>
+                                    <input type="hidden" value="{{ data }}" class="donermodaldata" readonly
+                                           id="donermodal{{ forloop.counter }}_data">
+                                    <button type="button" class="btn btn-primary donermodalbutton"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#donorModal" id="donermodal{{ forloop.counter }}">
+                                        View Donor Details
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -150,8 +153,85 @@
                 </div>
             </div>
 
+            <div class="card">
+                <h5 class="card-header">ANSRS</h5>
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">The final intact piece of tissue before cell or nuclei prep. This
+                        piece of tissue will be used in dissociation and has an region of interest polygon
+                        (ROI) associated with it.</p>
+
+                    <div class="card card-body">
+                        {% for ansrs in matched_nimp_ansrs_data %}
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="donorModal" tabindex="-1" aria-labelledby="donorModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="donorModalLabel">Donor</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ...
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+            $(".donermodalbutton").click(function (event) {
+                event.preventDefault();
+                var elementIdid = $(this).attr("id");
+                $(".modal-title").text("Donor | "+$("#" + elementIdid + "_datacls").text().trim());
+                console.log(elementIdid);
+                dataID = elementIdid + "_data";
+                console.log($("#" + elementIdid + "_datacls").text().trim());
+                console.log($("#" + dataID).val().trim());
+                $.ajax({
+                    url: '{% url 'get_doner_data_ajax' %}',
+                    data: {'doner_id': $("#" + dataID).val().trim()},
+                    type: 'GET',
+                    async: false,
+                    cache: false,
+                    dataType: 'json',
+                    success: function (jsonData) {
+                        console.log(jsonData["data"]);
+                        $('.modal-body').empty();
+                        var table = $('<table class="table table-hover"></table>').appendTo('.modal-body');
+                        var tbody = $('<tbody></tbody>').appendTo(table);
+
+                        $.each(jsonData["data"], function (key, value) {
+                            console.log(value[0], value[1]);
+                            $.each(value, function (label, item) {
+                                var row = $('<tr></tr>').appendTo(tbody);
+                                $('<td></td>').text(label).appendTo(row);
+                                $('<td></td>').text(item).appendTo(row);
+
+
+                            })
+
+                        });
+
+                    }
+                });
+            });
+        });
+    </script>
 
 {% endblock bodycontent %}
 
