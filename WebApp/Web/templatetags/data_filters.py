@@ -18,24 +18,22 @@
 from django import template
 from urllib.parse import urlparse
 import validators
+from ..shared import _format_underscore_string, split_and_extract_last
 register = template.Library()
 
-def format_underscore_string(s):
-    if "_" in s:
-        words = s.split('_')
-        words = [word.capitalize() for word in words]
-        formatted_string = ' '.join(words)
-        return formatted_string
-    else:
-        return s
+
+@register.filter
+def zip_lists(a, b):
+    return zip(a, b)
+
+@register.filter
+def format_underscore_string(value):
+    return _format_underscore_string(value)
+
 @register.filter
 def extract_last_part(value):
-    if '#' in value:
-        last_part = value.split('#')[-1]
-    else:
-        last_part = value.split('/')[-1]
-    last_part = format_text_with_space(format_underscore_string(last_part))
-    return last_part
+    return split_and_extract_last(value)
+
 
 @register.filter
 def extract_last_two_part(url):
@@ -52,22 +50,7 @@ def capitalize_first_letter(value):
     else:
         return ""
 
-@register.filter
-def format_text_with_space(text):
-    # convert wasDerivedFrom to Was Derived From
-    words = []
-    start = 0
 
-    for i in range(1, len(text)):
-        if text[i].isupper():
-            words.append(text[start:i])
-            start = i
-
-    words.append(text[start:])
-    words[0] = words[0].capitalize()
-    formatted_text = " ".join(words)
-
-    return formatted_text
 
 @register.filter
 def is_list(item):

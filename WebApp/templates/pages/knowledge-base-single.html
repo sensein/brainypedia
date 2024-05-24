@@ -8,6 +8,7 @@
     .card{
     width: 100% !important;
     }
+
 {% endblock inpagecss %}
 {% block title %}
     Knowledge Base - {{ label }}
@@ -18,7 +19,7 @@
             <h5 class="card-header">{{ label }}</h5>
             <div class="card-body">
                 <h5 class="card-title main-title">Summary</h5>
-                <table class="table table-hover">
+                <table class="table table-bordered">
                     <tbody>
                     <tr>
                         <th>
@@ -143,12 +144,13 @@
                                     </td>
                                     <td>
                                         <input type="hidden" value="{{ data }}" class="tissuemodaldata" readonly
-                                           id="tissuemodal{{ forloop.counter }}_data">
+                                               id="tissuemodal{{ forloop.counter }}_data">
                                         <button type="button" class="btn btn-primary tissuemodalbutton"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#donorTissueModal" id="tissuemodal{{ forloop.counter }}">
-                                        View Tissue Sample Details
-                                    </button>
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#donorTissueModal"
+                                                id="tissuemodal{{ forloop.counter }}">
+                                            View Tissue Sample Details
+                                        </button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -168,7 +170,47 @@
                         (ROI) associated with it.</p>
 
                     <div class="card card-body">
-                        {% for ansrs in matched_nimp_ansrs_data %}
+                        {% for ind_items in matched_nimp_ansrs_data %}
+                            {% for key, ind_value in ind_items.items %}
+                                <table class="table table-hover">
+                                    <tbody>
+                                    <tr>
+                                        <th>
+                                            {{ key|extract_last_part }}
+                                        </th>
+                                        <td>
+                                            <table class="table">
+                                                <tbody>
+                                                {% for key, value in ind_value.items %}
+                                                    <tr>
+                                                        <th>
+                                                            {{ key|extract_last_part }}
+                                                        </th>
+                                                        <td>
+                                                            {% if value|is_list %}
+                                                                {% for val in value %}
+                                                                    {{ val }}<br/>
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                 {{ value }}
+                                                            {% endif %}
+
+                                                        </td>
+                                                    </tr>
+
+
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+
+
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+                            {% endfor %}
+
                         {% endfor %}
                     </div>
 

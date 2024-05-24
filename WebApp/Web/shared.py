@@ -168,7 +168,6 @@ def extract_data_doner_tissuesample_match_query(category, nimp_id):
               FILTER(?entity = <{1}>) 
             }}
         GROUP BY ?entity ?targetType""").format(category, nimp_id)
-    print(query)
     return query
 
 
@@ -195,20 +194,25 @@ def nimp_gars(taxon_id):
 
 def nimp_ansrs(structure):
     query = textwrap.dedent("""
-        PREFIX ansrs: <https://w3id.org/my-org/ansrs-schema/>
-        PREFIX biolink: <https://w3id.org/biolink/vocab/>
-        SELECT DISTINCT ?s (GROUP_CONCAT(DISTINCT ?property; separator=", ") AS ?property) (GROUP_CONCAT(DISTINCT ?object; separator=", ") AS ?object) 
-        WHERE {{ 
-            {{
-                SELECT ?s ?o WHERE {{
-                   ?s ansrs:has_parent_parcellation_term ?o.  
-                    FILTER(CONTAINS(STR(?o), "{0}"))
+            PREFIX ansrs: <https://w3id.org/my-org/ansrs-schema/>
+            PREFIX biolink: <https://w3id.org/biolink/vocab/>
+            SELECT ?s  
+                   (GROUP_CONCAT(CONCAT(STR(?property), "||", ?objects); separator="; ") AS ?property_objects)
+            WHERE {{
+                {{
+                    SELECT ?s ?o WHERE {{
+                        ?s ansrs:has_parent_parcellation_term ?o.
+                        FILTER(CONTAINS(STR(?o), "{0}"))
+                    }}
                 }}
-            }}
-            OPTIONAL {{
-                ?s ?property ?object .
-            }}
-        }} GROUP BY ?s
+                OPTIONAL {{
+                    SELECT ?s ?property (GROUP_CONCAT(DISTINCT STR(?object); separator=", ") AS ?objects)
+                    WHERE {{
+                        ?s ?property ?object .
+                    }}
+                    GROUP BY ?s ?property
+                }}
+            }} GROUP BY ?s
          """).format(structure)
     return query
 
@@ -225,9 +229,9 @@ def get_donor_data_by_id(donor_id):
 def get_tissuesample_data_by_id(tissue_id):
     query = textwrap.dedent("""
             select  DISTINCT * where {{
-    ?tissue_id ?property ?object .
-    FILTER(?tissue_id = <{0}>)
-}}  
+            ?tissue_id ?property ?object .
+            FILTER(?tissue_id = <{0}>)
+        }}  
     """).format(tissue_id)
     return query
 
@@ -242,6 +246,8 @@ def doner_tissue_to_js(data):
             elif key == "Was Derived From":
                 key = "Source"
                 value = extract_uri_data(item["object"]["value"])
+            elif key == "Species":
+                key = "Taxon Number"
 
 
             js_data.append({key:value})
@@ -286,15 +292,29 @@ def format_data_for_kb_single(fetched_data):
     return {"localname": localname, "grouped_data": grouped_data}
 
 
+def parse_property_objects(data):
+    result = {}
+
+    property_objects = data['property_objects']['value']
+
+    properties = property_objects.split('; ')
+
+    for prop in properties:
+        prop_name, prop_values = prop.split('||', 1)
+
+        if "description" in prop_name or "name" in prop_name:
+            values_list = prop_values
+        else:
+            values_list = prop_values.split(', ')
+        result[prop_name] = values_list
+
+    return result
+
 def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
     data_to_display = []
     for structure in ansrs_data:
         for data in fetch_knowledge_base(nimp_ansrs(structure))["message"]["results"]["bindings"]:
-            data_to_display.append({data["s"]["value"]: {"property":
-                                                             [item.strip() for item in
-                                                              data["property"]["value"].split(',')],
-                                                         "object": [item.strip() for item in
-                                                                    data["object"]["value"].split(',')]}})
+            data_to_display.append({data["s"]["value"]: parse_property_objects(data)})
     return data_to_display
 
 
@@ -320,7 +340,5 @@ def donor_tissues_data_for_kb_single(tissue_doner_data):
     donor_tissue["tissuesample"] = donor_tissue["tissuesample"].split(",")
     return donor_tissue
 
-def donor_tissue_modal(data):
-    print(data)
 
 

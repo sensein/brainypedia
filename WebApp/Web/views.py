@@ -73,15 +73,22 @@ def knowledge_base_single(request, id):
     tissue_sample_doner = fetch_knowledge_base(extract_data_doner_tissuesample_match_query(str_cat, param))
     tissue_donor_data = tissue_sample_doner["message"]["results"]["bindings"]
 
-    species_value_match_in_gars = [item.strip() for item in
-                                   tissue_donor_data[0]["species_value_match_in_gars"]["value"].split(',')]
+    species_value_match_in_gars = [item["species_value_match_in_gars"]["value"] for item in tissue_donor_data if item["species_value_match_in_gars"]["value"]]
+
     matched_nimp_gars_data = format_gars_data_for_kb_single(species_value_match_in_gars, fetch_knowledge_base)
 
     matched_donor_tissue_details_dict = donor_tissues_data_for_kb_single(tissue_donor_data)
 
-    structure_value_match_in_ansrs = [item.strip() for item in
-                                      tissue_donor_data[0]["structure_value_match_in_ansrs"]["value"].split(',')]
+    structure_value_match_in_ansrs = [item["structure_value_match_in_ansrs"]["value"] for item in tissue_donor_data if item["structure_value_match_in_ansrs"]["value"]]
+
     matched_nimp_ansrs_data = format_ansrs_data_for_kb_single(structure_value_match_in_ansrs, fetch_knowledge_base)
+
+    print("###"*100)
+    print(tissue_donor_data)
+    print("*NIMP GARS*"*100)
+    print(matched_nimp_ansrs_data)
+
+    print("###"*100)
 
     context = {
         "uri_param": param,
