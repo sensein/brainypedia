@@ -313,21 +313,27 @@ def parse_property_objects(data):
 def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
     data_to_display = []
     for structure in ansrs_data:
-        for data in fetch_knowledge_base(nimp_ansrs(structure))["message"]["results"]["bindings"]:
-            data_to_display.append({data["s"]["value"]: parse_property_objects(data)})
+        try:
+            for data in fetch_knowledge_base(nimp_ansrs(structure))["message"]["results"]["bindings"]:
+                data_to_display.append({data["s"]["value"]: parse_property_objects(data)})
+        except Exception as e:
+            print("No data found")
     return data_to_display
 
 
 def format_gars_data_for_kb_single(gars_data, fetch_knowledge_base):
     data_to_display = []
     for in_taxon in gars_data:
-        if fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
-            for data in fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
-                data_to_display.append({data["s"]["value"]: {"property":
-                                                                 [item.strip() for item in
-                                                                  data["property"]["value"].split(',')],
-                                                             "object": [item.strip() for item in
-                                                                        data["object"]["value"].split(',')]}})
+        try:
+            if fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
+                for data in fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
+                    data_to_display.append({data["s"]["value"]: {"property":
+                                                                     [item.strip() for item in
+                                                                      data["property"]["value"].split(',')],
+                                                                 "object": [item.strip() for item in
+                                                                            data["object"]["value"].split(',')]}})
+        except Exception as e:
+            print("No data found")
     return data_to_display
 
 
