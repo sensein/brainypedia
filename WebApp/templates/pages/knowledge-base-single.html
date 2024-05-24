@@ -192,61 +192,61 @@
         </div>
     </div>
 
-<script>
-    $(document).ready(function () {
-        initializeDonerModalButton();
-    });
-
-    function initializeDonerModalButton() {
-        $(".donermodalbutton").click(function (event) {
-            event.preventDefault();
-            var elementId = $(this).attr("id");
-            setModalTitle("Donor", elementId);
-            fetchAndDisplayDonorData(elementId);
+    <script>
+        $(document).ready(function () {
+            initializeDonerModalButton();
         });
-    }
 
-    function setModalTitle(title, elementId) {
-        var title =title+" | " + $("#" + elementId + "_datacls").text().trim();
-        $(".modal-title").text(title);
-        console.log(elementId);
-    }
+        function initializeDonerModalButton() {
+            $(".donermodalbutton").click(function (event) {
+                event.preventDefault();
+                var elementId = $(this).attr("id");
+                setModalTitle("Donor", elementId);
+                var dataID = elementId + "_data";
+                var donorId = $("#" + dataID).val().trim();
+                var dataparm = {'doner_id': donorId};
+                var uri_to_call = "{% url 'get_doner_data_ajax' %}";
 
-    function fetchAndDisplayDonorData(elementId) {
-        var dataID = elementId + "_data";
-        var donorId = $("#" + dataID).val().trim();
-        console.log($("#" + elementId + "_datacls").text().trim());
-        console.log(donorId);
-
-        $.ajax({
-            url: '{% url 'get_doner_data_ajax' %}',
-            data: {'doner_id': donorId},
-            type: 'GET',
-            async: false,
-            cache: false,
-            dataType: 'json',
-            success: function (jsonData) {
-                console.log(jsonData["data"]);
-                updateModalBody(jsonData["data"]);
-            }
-        });
-    }
-
-    function updateModalBody(data) {
-        $('.modal-body').empty();
-        var table = $('<table class="table table-hover"></table>').appendTo('.modal-body');
-        var tbody = $('<tbody></tbody>').appendTo(table);
-
-        $.each(data, function (key, value) {
-            console.log(value[0], value[1]);
-            $.each(value, function (label, item) {
-                var row = $('<tr></tr>').appendTo(tbody);
-                $('<td></td>').text(label).appendTo(row);
-                $('<td></td>').text(item).appendTo(row);
+                fetchAndDisplayData(uri_to_call, dataparm);
             });
-        });
-    }
-</script>
+        }
+
+        function setModalTitle(title, elementId) {
+            var title = title + " | " + $("#" + elementId + "_datacls").text().trim();
+            $(".modal-title").text(title);
+            console.log(elementId);
+        }
+
+        function fetchAndDisplayData(uri_to_call, dataparm) {
+            $.ajax({
+                url: uri_to_call,
+                data: dataparm,
+                type: 'GET',
+                async: false,
+                cache: false,
+                dataType: 'json',
+                success: function (jsonData) {
+                    console.log(jsonData["data"]);
+                    updateModalBody(jsonData["data"]);
+                }
+            });
+        }
+
+        function updateModalBody(data) {
+            $('.modal-body').empty();
+            var table = $('<table class="table table-hover"></table>').appendTo('.modal-body');
+            var tbody = $('<tbody></tbody>').appendTo(table);
+
+            $.each(data, function (key, value) {
+                console.log(value[0], value[1]);
+                $.each(value, function (label, item) {
+                    var row = $('<tr></tr>').appendTo(tbody);
+                    $('<td></td>').text(label).appendTo(row);
+                    $('<td></td>').text(item).appendTo(row);
+                });
+            });
+        }
+    </script>
 
 
 {% endblock bodycontent %}
