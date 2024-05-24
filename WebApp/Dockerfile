@@ -7,7 +7,6 @@ WORKDIR .
 
 # Install dependencies
 RUN pip install -r requirements.txt
-
 # Run migrations and create superuser
 RUN python manage.py makemigrations
 RUN python manage.py migrate
@@ -17,4 +16,4 @@ DJANGO_SUPERUSER_EMAIL="brainadmin@admin.com" \
 python manage.py createsuperuser --noinput
 
 # Command to run the app
-CMD ["gunicorn", "-b", "0.0.0.0:8055", "BrainyPediaApp.wsgi:application"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "BrainyPediaApp.wsgi:application"]
