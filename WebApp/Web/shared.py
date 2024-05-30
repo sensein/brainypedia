@@ -347,4 +347,17 @@ def donor_tissues_data_for_kb_single(tissue_doner_data):
     return donor_tissue
 
 
+def _sex_int_to_word(sex_id):
+    if int(sex_id) == 1:
+        return "Male"
+    elif int(sex_id) == 2:
+        return "Female"
+    elif int(sex_id) == 7:
+        return "Other"
+    elif int(sex_id) == 8:
+        return "Unknown"
+    else:
+        return "Not Reported"
+
+
 
