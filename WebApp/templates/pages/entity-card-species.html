@@ -1,10 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+{% load data_filters %}
+{% block inpagecss %}
+    .left-sidebar-menu{
+    margin:5px;
+    }
+{% endblock inpagecss %}
+{% block title %}
+    Species
+{% endblock title %}
+{% block bodycontent %}
+    {% if knowledge_base %}
+
+    {% else %}
+        <div class="alert alert-secondary" role="alert">
+            Please configure the application first.
+        </div>
+    {% endif %}
+{% endblock bodycontent %}
