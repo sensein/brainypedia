@@ -18,7 +18,7 @@
 from django import template
 from urllib.parse import urlparse
 import validators
-from ..shared import _format_underscore_string, split_and_extract_last
+from ..shared import _format_underscore_string, split_and_extract_last, _sex_int_to_word
 register = template.Library()
 
 
@@ -59,3 +59,7 @@ def is_list(item):
 @register.filter
 def is_url(string):
     return validators.url(string)
+
+@register
+def format_gender(sex_id):
+    return _sex_int_to_word(sex_id=sex_id)
