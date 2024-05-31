@@ -26,6 +26,8 @@ urlpatterns = [
                   path('knowledge-base/<slug:slug>', views.knowledge_base_slug, name='knowledge_base_slug'),
                   path('knowledge-base', views.knowledge_base, name='knowledge_base'),
                   path('get_doner_data_ajax', views.get_doner_data_ajax, name='get_doner_data_ajax'),
-                  path('get_tissuesample_data_ajax', views.get_tissuesample_data_ajax, name='get_tissuesample_data_ajax'),
+                  path('get_tissuesample_data_ajax', views.get_tissuesample_data_ajax,
+                       name='get_tissuesample_data_ajax'),
+                  path('species/<slug:slug>', views.species_entity_card, name='species_entity_card'),
                   path('', views.index, name='index'),
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
