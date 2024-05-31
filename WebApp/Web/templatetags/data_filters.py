@@ -34,6 +34,10 @@ def format_underscore_string(value):
 def extract_last_part(value):
     return split_and_extract_last(value)
 
+@register.filter
+def extract_last_part_url_friendly(value):
+    return split_and_extract_last(value).replace(':', '-')
+
 
 @register.filter
 def extract_last_two_part(url):
