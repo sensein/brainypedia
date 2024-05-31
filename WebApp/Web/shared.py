@@ -19,7 +19,6 @@
 from urllib.parse import urlparse
 import json
 
-
 import textwrap
 from collections import defaultdict
 
@@ -33,6 +32,7 @@ def _format_underscore_string(s):
     else:
         return s
 
+
 def split_and_extract_last(value):
     if '#' in value:
         last_part = value.split('#')[-1]
@@ -40,6 +40,7 @@ def split_and_extract_last(value):
         last_part = value.split('/')[-1]
     last_part = format_text_with_space(_format_underscore_string(last_part))
     return last_part
+
 
 def format_text_with_space(text):
     # convert wasDerivedFrom to Was Derived From
@@ -56,6 +57,8 @@ def format_text_with_space(text):
     formatted_text = " ".join(words)
 
     return formatted_text
+
+
 def extract_uri_data(url):
     parsed_url = urlparse(url)
     if parsed_url.fragment:
@@ -79,10 +82,11 @@ def format_sentence(text):
     formatted_text = text.replace('_', ' ').capitalize()
     return formatted_text
 
+
 def get_category_value(data):
     for property in data:
         if 'property' in property and property['property'] == 'https://w3id.org/biolink/vocab/category':
-            if type(property['value'])==list:
+            if type(property['value']) == list:
                 return property['value'][0]
             else:
                 return property['value']
@@ -226,6 +230,7 @@ def get_donor_data_by_id(donor_id):
     """).format(donor_id)
     return query
 
+
 def get_tissuesample_data_by_id(tissue_id):
     query = textwrap.dedent("""
             select  DISTINCT * where {{
@@ -235,12 +240,29 @@ def get_tissuesample_data_by_id(tissue_id):
     """).format(tissue_id)
     return query
 
+
+def _sex_int_to_word(sex_id):
+    if int(sex_id) == 1:
+        return "Male"
+    elif int(sex_id) == 2:
+        return "Female"
+    elif int(sex_id) == 7:
+        return "Other"
+    elif int(sex_id) == 8:
+        return "Unknown"
+    else:
+        return "Not Reported"
+
+
 def doner_tissue_to_js(data):
     js_data = []
+    unit_type = None
     for item in data:
-        if not ("donor" in item["object"]["value"].lower() or  "tissuesample" in item["object"]["value"].lower()):
+
+        if not ("donor" in item["object"]["value"].lower() or "tissuesample" in item["object"]["value"].lower()):
             key = split_and_extract_last(item["property"]["value"])
             value = item["object"]["value"]
+
             if key == "Label":
                 key = "Local Name"
             elif key == "Was Derived From":
@@ -248,10 +270,17 @@ def doner_tissue_to_js(data):
                 value = extract_uri_data(item["object"]["value"])
             elif key == "Species":
                 key = "Taxon Number"
+            elif key == "Age  At  Death  Unit":
+                unit_type = value
+            elif key == "Age  At  Death  Value":
+                value = f"{int(float(value))} {unit_type}"
+            elif key == "Biological  Sex":
+                value = _sex_int_to_word(value)
 
+            js_data.append({key: value})
 
-            js_data.append({key:value})
-    return js_data
+    filtered_js_data = [d for d in js_data if "Age  At  Death  Unit" not in d]
+    return filtered_js_data
 
 
 def group_dict(list_of_dict):
@@ -278,16 +307,16 @@ def group_dict(list_of_dict):
 
 def format_data_for_kb_single(fetched_data):
     data_to_display = []
-    localname=None
+    localname = None
     for data in fetched_data:
         if 'object' in data and data['object'] is not None:
             if data['predicate']['value'] == "http://www.w3.org/2000/01/rdf-schema#label":
                 localname = data['object']['value']
             else:
                 data_to_display.append({"property": data['predicate']['value'],
-                                    "value": data['object']['value'],
+                                        "value": data['object']['value'],
                                         "category_type": data["category_type"]["value"]}
-                                   )
+                                       )
     grouped_data = group_dict(data_to_display)
     return {"localname": localname, "grouped_data": grouped_data}
 
@@ -309,6 +338,7 @@ def parse_property_objects(data):
         result[prop_name] = values_list
 
     return result
+
 
 def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
     data_to_display = []
@@ -345,19 +375,3 @@ def donor_tissues_data_for_kb_single(tissue_doner_data):
     donor_tissue["donor"] = donor_tissue["donor"].split(",")
     donor_tissue["tissuesample"] = donor_tissue["tissuesample"].split(",")
     return donor_tissue
-
-
-def _sex_int_to_word(sex_id):
-    if int(sex_id) == 1:
-        return "Male"
-    elif int(sex_id) == 2:
-        return "Female"
-    elif int(sex_id) == 7:
-        return "Other"
-    elif int(sex_id) == 8:
-        return "Unknown"
-    else:
-        return "Not Reported"
-
-
-

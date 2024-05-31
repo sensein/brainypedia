@@ -60,6 +60,6 @@ def is_list(item):
 def is_url(string):
     return validators.url(string)
 
-@register
+@register.filter
 def format_gender(sex_id):
     return _sex_int_to_word(sex_id=sex_id)
