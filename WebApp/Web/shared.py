@@ -41,6 +41,14 @@ def split_and_extract_last(value):
     last_part = format_text_with_space(_format_underscore_string(last_part))
     return last_part
 
+def split_and_extract_last_only(value):
+    if '#' in value:
+        last_part = value.split('#')[-1]
+    else:
+        last_part = value.split('/')[-1]
+
+    return last_part
+
 
 def format_text_with_space(text):
     # convert wasDerivedFrom to Was Derived From
@@ -114,6 +122,20 @@ def get_filter_uirs_label(kbobj):
             "pre_processed_label":
                 original_label
             }
+
+
+def fetch_all_matching_genome_info_query(ids):
+    query = textwrap.dedent(
+        """SELECT ?s (GROUP_CONCAT(?p; separator="||") AS ?property) (GROUP_CONCAT(?o; separator="||") AS ?object) WHERE {{
+          VALUES ?s {{
+            {0}
+          }}
+          ?s ?p ?o .
+        }}
+        GROUP BY ?s
+        """
+    ).format(" ".join([f"<{id}>" for id in ids]))
+    return query
 
 
 def extract_data_either_s_p_o_match(param):
@@ -220,6 +242,33 @@ def nimp_ansrs(structure):
          """).format(structure)
     return query
 
+
+def all_species_genome_by_taxon(taxon_id, offset=0):
+    """Paginated Query for all species"""
+    newlimit = 100
+    query = textwrap.dedent("""
+            PREFIX biolink: <https://w3id.org/biolink/vocab/>
+            SELECT DISTINCT *
+            WHERE {{
+                 ?id biolink:in_taxon ?gar_obj.
+                        FILTER(?gar_obj = <{0}>)
+            }}  LIMIT {1}
+                OFFSET {2}
+            """).format(taxon_id.lower().strip(), newlimit, offset)
+
+    return query
+
+def species_pagination_count_by_taxon(taxon_id):
+    """query to count total occurences of species for pagination """
+    query = textwrap.dedent("""
+                PREFIX biolink: <https://w3id.org/biolink/vocab/>
+                SELECT DISTINCT  (COUNT(?id) AS ?count)
+                WHERE {{
+                     ?id biolink:in_taxon ?gar_obj.
+                            FILTER(?gar_obj = <{0}>)
+                }}   
+                """).format(taxon_id.lower().strip())
+    return query
 
 def get_donor_data_by_id(donor_id):
     query = textwrap.dedent("""
@@ -351,17 +400,27 @@ def format_ansrs_data_for_kb_single(ansrs_data, fetch_knowledge_base):
     return data_to_display
 
 
+def format_data_to_dict(data, splitcriteria):
+    return {data["s"]["value"]: {"property":
+                                     [item.strip() for item in
+                                      data["property"]["value"].split(splitcriteria)],
+                                 "object": [item.strip() for item in
+                                            data["object"]["value"].split(splitcriteria)]}}
+
+def format_species_annotation_data(species_data):
+    data_to_display = []
+    for species in species_data:
+        data_to_display.append(format_data_to_dict(species, "||"))
+    return data_to_display
+
+
 def format_gars_data_for_kb_single(gars_data, fetch_knowledge_base):
     data_to_display = []
     for in_taxon in gars_data:
         try:
             if fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
                 for data in fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
-                    data_to_display.append({data["s"]["value"]: {"property":
-                                                                     [item.strip() for item in
-                                                                      data["property"]["value"].split(',')],
-                                                                 "object": [item.strip() for item in
-                                                                            data["object"]["value"].split(',')]}})
+                    data_to_display.append(format_data_to_dict(data, ","))
         except Exception as e:
             print("No data found")
     return data_to_display

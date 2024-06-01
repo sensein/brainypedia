@@ -18,7 +18,7 @@
 from django import template
 from urllib.parse import urlparse
 import validators
-from ..shared import _format_underscore_string, split_and_extract_last, _sex_int_to_word
+from ..shared import _format_underscore_string, split_and_extract_last, _sex_int_to_word, split_and_extract_last_only
 register = template.Library()
 
 
@@ -33,6 +33,10 @@ def format_underscore_string(value):
 @register.filter
 def extract_last_part(value):
     return split_and_extract_last(value)
+
+@register.filter
+def extract_last_part_only(value):
+    return split_and_extract_last_only(value)
 
 @register.filter
 def extract_last_part_url_friendly(value):
