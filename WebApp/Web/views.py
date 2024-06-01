@@ -11,9 +11,13 @@ from .shared import (extract_data_either_s_p_o_match, format_data_for_kb_single,
                      donor_tissues_data_for_kb_single,
                      get_donor_data_by_id,
                      doner_tissue_to_js,
-                     get_tissuesample_data_by_id
+                     get_tissuesample_data_by_id,
+                     all_species_genome_by_taxon,
+                     fetch_all_matching_genome_info_query,
+                     format_species_annotation_data,
+                     species_pagination_count_by_taxon
                      )
-
+import numpy as np
 
 def index(request):
     return render(request, "pages/index.html")
@@ -24,7 +28,7 @@ def fetch_knowledge_base(query_or_search_input, query_endpoint_type="get", endpo
                                                    endpoint_service_type=endpoint_service_type)
     payload = {"sparql_query": query_or_search_input}
     response = requests.get(endpoints[0].query_url, params=payload)
-    print("^"*100)
+    print("^" * 100)
     print(response.url)
     if response.status_code == 200:
         return response.json()
@@ -75,13 +79,15 @@ def knowledge_base_single(request, id):
     tissue_sample_doner = fetch_knowledge_base(extract_data_doner_tissuesample_match_query(str_cat, param))
     tissue_donor_data = tissue_sample_doner["message"]["results"]["bindings"]
 
-    species_value_match_in_gars = [item["species_value_match_in_gars"]["value"] for item in tissue_donor_data if item["species_value_match_in_gars"]["value"]]
+    species_value_match_in_gars = [item["species_value_match_in_gars"]["value"] for item in tissue_donor_data if
+                                   item["species_value_match_in_gars"]["value"]]
 
     matched_nimp_gars_data = format_gars_data_for_kb_single(species_value_match_in_gars, fetch_knowledge_base)
 
     matched_donor_tissue_details_dict = donor_tissues_data_for_kb_single(tissue_donor_data)
 
-    structure_value_match_in_ansrs = [item["structure_value_match_in_ansrs"]["value"] for item in tissue_donor_data if item["structure_value_match_in_ansrs"]["value"]]
+    structure_value_match_in_ansrs = [item["structure_value_match_in_ansrs"]["value"] for item in tissue_donor_data if
+                                      item["structure_value_match_in_ansrs"]["value"]]
 
     matched_nimp_ansrs_data = format_ansrs_data_for_kb_single(structure_value_match_in_ansrs, fetch_knowledge_base)
 
@@ -134,3 +140,59 @@ def knowledge_base_slug(request, slug):
     context["menu_items"] = other_items
     return render(request,
                   "pages/knowledge-base.html", context=context)
+
+
+def extract_ids(results):
+    genome_ids = []
+    for ids in results["message"]["results"]["bindings"]:
+        genome_ids.append(ids["id"]["value"])
+    return genome_ids
+
+
+def species_entity_card(request, slug):
+    offset = request.GET.get("offset")
+    offset = 0 if offset is None else int(offset)
+    original_slug = slug.replace('-', ':').lower()
+    genome_matches = fetch_knowledge_base(
+        all_species_genome_by_taxon(
+            taxon_id=original_slug,
+            offset=offset
+        )
+    )
+
+
+    all_matching_genome = fetch_knowledge_base(
+        fetch_all_matching_genome_info_query(
+            extract_ids(genome_matches)
+        )
+    )
+    pagination_count = fetch_knowledge_base(
+        species_pagination_count_by_taxon(
+            taxon_id=original_slug
+        )
+    )
+    try:
+        paginated_data = np.arange(0,int(pagination_count["message"]["results"]["bindings"][0]["count"]["value"]) , 100)
+    except KeyError as e:
+        pass
+
+    context = {
+        "all_species_gene_data": format_species_annotation_data(all_matching_genome["message"]["results"]["bindings"]),
+        "paginated_data": paginated_data,
+        "slug":slug
+    }
+    return render(request,
+                  "pages/entity-card-species.html", context=context)
+
+
+def evidence(request):
+    other_items = KnowledgeBaseViewerModel.objects.all().filter(status_active=True).order_by("-default_kb")
+
+    context= {"menu_items": other_items}
+    return render(request, "pages/evidence.html", context)
+
+def assertion(request):
+    other_items = KnowledgeBaseViewerModel.objects.all().filter(status_active=True).order_by("-default_kb")
+
+    context = {"menu_items": other_items}
+    return render(request, "pages/assertion.html", context)
