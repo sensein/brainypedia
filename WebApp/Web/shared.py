@@ -312,12 +312,10 @@ def get_libraryaliquot_count():
 
 def get_species_count():
     query = textwrap.dedent("""
-        PREFIX bican: <https://identifiers.org/brain-bican/vocab/> 
-        PREFIX biolink: <https://w3id.org/biolink/vocab/>   
-        SELECT DISTINCT (COUNT(?id) as ?count )
-        WHERE {{
-          ?id  bican:species ?o; 
-        }}
+       PREFIX biolink: <https://w3id.org/biolink/vocab/> 
+        select DISTINCT (COUNT(?s) as ?count) where {{
+           ?s biolink:iri ?o.
+        }}  
     """)
     return query
 
