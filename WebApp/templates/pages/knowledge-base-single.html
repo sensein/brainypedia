@@ -155,8 +155,8 @@
                                 <table class="table table-borderless">
                                     <thead>
                                     <tr>
-                                        <th>Property</th>
-                                        <th>Value</th>
+                                        <th>Doner ID</th>
+                                        <th>Properties</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -172,23 +172,25 @@
                                                 {% for prop, obj in ind_value.property|zip_lists:ind_value.object %}
 
                                                     <tr>
-                                                        <th>
+
                                                             {% if prop|extract_last_part == "Label" %}
-                                                                Local Name
+                                                                <th> Local Name</th>
+                                                                 {% elif prop|extract_last_part == "Category" %}
                                                             {% else %}
-                                                                {{ prop|extract_last_part }}
+                                                                <th> {{ prop|extract_last_part }}</th>
                                                             {% endif %}
 
                                                         </th>
-                                                        <td>
+
                                                             {% if prop|extract_last_part == "Species" %}
-                                                                {{obj}}
+                                                                <td> {{obj}}</td>
+                                                                 {% elif prop|extract_last_part == "Category" %}
                                                                 {% elif prop|extract_last_part == "Age  At  Death  Value" %}
-                                                                {{ obj|format_age }}
+                                                                <td>{{ obj|format_age }}</td>
                                                                 {% elif prop|extract_last_part == "Biological  Sex" %}
-                                                                {{ obj|format_gender }}
+                                                                <td>{{ obj|format_gender }}</td>
                                                             {% else %}
-                                                                {{ obj|extract_last_part }}
+                                                                <td>{{ obj|extract_last_part }}</td>
                                                             {% endif %}
 
                                                         </td>
@@ -220,8 +222,8 @@
                                         <table class="table table-borderless">
                                             <thead>
                                             <tr>
-                                                <th>Property</th>
-                                                <th>Value</th>
+                                                <th>Species URI</th>
+                                                <th>Properties</th>
                                             </tr>
                                             </thead>
                                             <tbody>
@@ -246,20 +248,26 @@
                                                         {% for prop, obj in ind_value.property|zip_lists:ind_value.object %}
 
                                                             <tr>
-                                                                <th>
+
                                                                     {% if prop|extract_last_part == "Label" %}
-                                                                        Local Name
+                                                                        <th>
+                                                                            Local Name
+                                                                        </th>
+                                                                        {% elif prop|extract_last_part == "Category" %}
                                                                     {% else %}
+                                                                        <th>
                                                                         {{ prop|extract_last_part }}
+                                                                         </th>
                                                                     {% endif %}
 
-                                                                </th>
-                                                                <td>
+
+
                                                                     {% if prop == "https://w3id.org/biolink/vocab/iri" %}
-                                                                        <a href="{{ obj }}"
-                                                                           target="_blank">{{ obj }}</a>
+                                                                        <td><a href="{{ obj }}"
+                                                                               target="_blank">{{ obj }}</a></td>
+                                                                    {% elif prop|extract_last_part == "Category" %}
                                                                     {% else %}
-                                                                        {{ obj|extract_last_part }}
+                                                                        <td>{{ obj|extract_last_part }}</td>
                                                                     {% endif %}
 
                                                                 </td>
