@@ -71,3 +71,7 @@ def is_url(string):
 @register.filter
 def format_gender(sex_id):
     return _sex_int_to_word(sex_id=sex_id)
+
+@register.filter
+def format_age(age):
+    return int(float(age))

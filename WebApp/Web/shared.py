@@ -228,7 +228,7 @@ def nimp_ansrs(structure):
                 {{
                     SELECT ?s ?o WHERE {{
                         ?s ansrs:has_parent_parcellation_term ?o.
-                        FILTER(CONTAINS(STR(?o), "{0}"))
+                        FILTER(CONTAINS(STR(?s), "{0}"))
                     }}
                 }}
                 OPTIONAL {{
@@ -239,7 +239,7 @@ def nimp_ansrs(structure):
                     GROUP BY ?s ?property
                 }}
             }} GROUP BY ?s
-         """).format(structure)
+         """).format(structure.lower())
     return query
 
 
@@ -273,12 +273,64 @@ def species_pagination_count_by_taxon(taxon_id):
 def get_donor_data_by_id(donor_id):
     query = textwrap.dedent("""
             select DISTINCT * where {{
-                ?doner_id ?property ?object .
-                FILTER(?doner_id = <{0}>)
+                ?s ?property ?object .
+                FILTER(?s = <{0}>)
             }}
     """).format(donor_id)
     return query
 
+def get_donor_by_id_concat(donor_id):
+    query = textwrap.dedent("""
+    select DISTINCT  ?s (GROUP_CONCAT(DISTINCT ?sp; separator=", ") AS ?property) (GROUP_CONCAT(DISTINCT ?oo; separator=", ") AS ?object)  where {{
+                ?s ?sp ?oo .
+                FILTER(?s = <{0}>)
+            }}
+            GROUP BY ?s
+    """).format(donor_id)
+    return query
+
+def get_structure_count():
+    query = textwrap.dedent("""
+        PREFIX bican: <https://identifiers.org/brain-bican/vocab/>  
+        SELECT DISTINCT (COUNT (?id) as ?count)
+        WHERE {{
+          ?id bican:structure ?o; 
+        }}
+    """)
+    return query
+
+def get_libraryaliquot_count():
+    query = textwrap.dedent("""
+            PREFIX bican: <https://identifiers.org/brain-bican/vocab/> 
+            PREFIX biolink: <https://w3id.org/biolink/vocab/>   
+            SELECT DISTINCT (COUNT(?id) as ?count )
+            WHERE {{
+              ?id biolink:category bican:LibraryAliquot; 
+            }}
+    """)
+    return query
+
+def get_species_count():
+    query = textwrap.dedent("""
+        PREFIX bican: <https://identifiers.org/brain-bican/vocab/> 
+        PREFIX biolink: <https://w3id.org/biolink/vocab/>   
+        SELECT DISTINCT (COUNT(?id) as ?count )
+        WHERE {{
+          ?id  bican:species ?o; 
+        }}
+    """)
+    return query
+
+def get_donor_count():
+    query = textwrap.dedent("""
+        PREFIX bican: <https://identifiers.org/brain-bican/vocab/> 
+        PREFIX biolink: <https://w3id.org/biolink/vocab/>   
+        SELECT DISTINCT (COUNT(?id) as ?count )
+        WHERE {{
+          ?id biolink:category bican:Donor; 
+        }}
+    """)
+    return query
 
 def get_tissuesample_data_by_id(tissue_id):
     query = textwrap.dedent("""
@@ -420,6 +472,17 @@ def format_gars_data_for_kb_single(gars_data, fetch_knowledge_base):
         try:
             if fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
                 for data in fetch_knowledge_base(nimp_gars(in_taxon))["message"]["results"]["bindings"]:
+                    data_to_display.append(format_data_to_dict(data, ","))
+        except Exception as e:
+            print("No data found")
+    return data_to_display
+
+def format_donor_for_kb_single(donors, fetch_knowledge_base):
+    data_to_display = []
+    for donor in donors:
+        try:
+            if fetch_knowledge_base(get_donor_by_id_concat(donor))["message"]["results"]["bindings"]:
+                for data in fetch_knowledge_base(get_donor_by_id_concat(donor))["message"]["results"]["bindings"]:
                     data_to_display.append(format_data_to_dict(data, ","))
         except Exception as e:
             print("No data found")

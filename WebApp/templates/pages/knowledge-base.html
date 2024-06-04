@@ -14,18 +14,18 @@
         <div class="row align-items-start">
             <div class="col-md-2">
                 <div class="left-sidebar-menu">
-                <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a
-                                        href="{% url 'assertion' %}">Assertion</a>
-                                </li>
-                            </ol>
-                    <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a
-                                        href="{% url 'evidence' %}">Evidence</a>
-                                </li>
-                            </ol>
-                        </nav>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a
+                                    href="{% url 'assertion' %}">Assertion</a>
+                            </li>
+                        </ol>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a
+                                    href="{% url 'evidence' %}">Evidence</a>
+                            </li>
+                        </ol>
+                    </nav>
                     {% for item in menu_items %}
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
@@ -60,10 +60,16 @@
                                             {{ data.next.value.key }}
                                             {{ data.next.value.value }}
 
+
                                         </a>
                                         </td>
                                     {% else %}
-                                        <td class="{{ key }}">{{ value.value }}</td>
+
+                                        {% if key == "category" %}
+                                            <td class="{{ key }}">{{ value.value|extract_last_part  }}</td>
+                                        {% else %}
+                                            <td class="{{ key }}">{{ value.value }}</td>
+                                        {% endif %}
                                     {% endif %}
                                 {% endfor %}
                             </tr>
