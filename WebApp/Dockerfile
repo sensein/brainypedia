@@ -16,4 +16,4 @@ RUN DJANGO_SUPERUSER_USERNAME=brainadmin1 \
 python manage.py createsuperuser --noinput
 
 # Command to run the app
-CMD ["gunicorn", "-b", "0.0.0.0:80", "--timeout","120", "BrainyPediaApp.wsgi:application"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "--timeout","120", "--workers", "8", "--threads", "4", "BrainyPediaApp.wsgi:application"]
